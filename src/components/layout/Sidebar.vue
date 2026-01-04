@@ -1,18 +1,12 @@
 <script setup>
 import { ref } from 'vue';
-// Using Lucide Icons for a professional, "pretty" look
 import {
-    Home,
-    Flame,
-    PlaySquare,
-    Library,
-    Settings,
-    ChevronLeft,
-    Menu,
-    User
+    Home, Flame, PlaySquare, Library, 
+    Settings, ChevronLeft, Menu, User
 } from 'lucide-vue-next';
 
-const isOpen = ref(true);
+// 1. Initialize state from localStorage
+const isOpen = ref(localStorage.getItem('sidebar-expanded') !== 'false');
 
 const menuItems = [
     { icon: Home, label: 'Home', color: '#60a5fa' },
@@ -21,6 +15,12 @@ const menuItems = [
     { icon: Library, label: 'Library', color: '#4ade80' },
     { icon: Settings, label: 'Settings', color: '#94a3b8' },
 ];
+
+// 2. Fixed Toggle Function
+const toggleSidebar = () => {
+    isOpen.value = !isOpen.value;
+    localStorage.setItem('sidebar-expanded', isOpen.value.toString());
+};
 </script>
 
 <template>
@@ -39,7 +39,7 @@ const menuItems = [
                 </div>
             </div>
 
-            <button class="toggle-control" @click="isOpen = !isOpen" :title="isOpen ? 'Collapse' : 'Expand'">
+            <button class="toggle-control" @click="toggleSidebar" :title="isOpen ? 'Collapse' : 'Expand'">
                 <component :is="isOpen ? ChevronLeft : Menu" :size="20" />
             </button>
         </header>
@@ -51,7 +51,6 @@ const menuItems = [
                     <component :is="item.icon" :size="22" stroke-width="2" />
                 </div>
                 <span class="nav-label" v-if="isOpen">{{ item.label }}</span>
-
                 <span class="tooltip" v-if="!isOpen">{{ item.label }}</span>
             </a>
         </nav>
@@ -79,10 +78,9 @@ const menuItems = [
     --sb-accent: #3b82f6;
     --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    /* LAYOUT FIX: Changed from fixed to relative/sticky */
+    position: relative; 
+    height: 100%;
     width: 280px;
     background: var(--sb-bg);
     display: flex;
@@ -92,6 +90,9 @@ const menuItems = [
     font-family: 'Plus Jakarta Sans', sans-serif;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     overflow: hidden;
+    
+    /* PREVENT SQUISHING: Ensures sidebar keeps its width */
+    flex-shrink: 0; 
 }
 
 .sidebar.collapsed {
@@ -248,6 +249,7 @@ const menuItems = [
     pointer-events: none;
     transition: 0.2s;
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
 }
 
 .nav-link:hover .tooltip {
@@ -313,19 +315,14 @@ const menuItems = [
 
 /* Animation */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 768px) {
+    .sidebar {
+        position: fixed; /* Only use fixed on mobile to overlay content */
+    }
     .sidebar:not(.collapsed) {
         width: 100%;
     }

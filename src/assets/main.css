@@ -1,0 +1,13 @@
+/* Global CSS */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #0b0f1a; /* Matches your app background */
+  overflow-x: hidden;
+}
+
+/* Ensure the root div fills the screen */
+#app {
+  width: 100%;
+  min-height: 100vh;
+}

@@ -3,6 +3,8 @@ import { ref } from "vue";
 import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/common/Loader.vue";
+// Note: You might need to install lucide-vue-next for the icons
+import { User, Mail, Lock, UserPlus } from 'lucide-vue-next';
 
 const name = ref("");
 const email = ref("");
@@ -14,28 +16,18 @@ const error = ref("");
 
 const handleRegister = () => {
     error.value = "";
-
     if (!name.value || !email.value || !password.value || !confirmPassword.value) {
         error.value = "All fields are required";
         return;
     }
-
     if (password.value !== confirmPassword.value) {
         error.value = "Passwords do not match";
         return;
     }
-
     isLoading.value = true;
-
-    // Simulate API call
     setTimeout(() => {
         isLoading.value = false;
-
-        console.log("Register data:", {
-            name: name.value,
-            email: email.value,
-            password: password.value,
-        });
+        console.log("Register data:", { name: name.value, email: email.value });
     }, 1500);
 };
 </script>
@@ -48,37 +40,56 @@ const handleRegister = () => {
 
         <main class="register-container">
             <form class="register-card" @submit.prevent="handleRegister">
-                <h2>Create your Videotube account</h2>
+                <div class="icon-header">
+                    <div class="icon-box">
+                        <UserPlus :size="24" />
+                    </div>
+                </div>
+                
+                <h2>Welcome</h2>
+                <p class="subtitle">Create your Videotube account</p>
 
-                <p v-if="error" class="error">{{ error }}</p>
+                <p v-if="error" class="error-msg">{{ error }}</p>
 
                 <div class="field">
                     <label>Full Name</label>
-                    <input type="text" placeholder="John Doe" v-model="name" />
+                    <div class="input-wrapper">
+                        <User class="input-icon" :size="18" />
+                        <input type="text" placeholder="John Doe" v-model="name" />
+                    </div>
                 </div>
 
                 <div class="field">
-                    <label>Email</label>
-                    <input type="email" placeholder="you@example.com" v-model="email" />
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <Mail class="input-icon" :size="18" />
+                        <input type="email" placeholder="name@example.com" v-model="email" />
+                    </div>
                 </div>
 
                 <div class="field">
                     <label>Password</label>
-                    <input type="password" placeholder="••••••••" v-model="password" />
+                    <div class="input-wrapper">
+                        <Lock class="input-icon" :size="18" />
+                        <input type="password" placeholder="••••••••" v-model="password" />
+                    </div>
                 </div>
 
                 <div class="field">
                     <label>Confirm Password</label>
-                    <input type="password" placeholder="••••••••" v-model="confirmPassword" />
+                    <div class="input-wrapper">
+                        <Lock class="input-icon" :size="18" />
+                        <input type="password" placeholder="••••••••" v-model="confirmPassword" />
+                    </div>
                 </div>
 
                 <button type="submit" class="register-btn">
-                    Create Account
+                    <span>Create Account</span>
+                    <UserPlus :size="18" />
                 </button>
 
                 <p class="redirect">
-                    Already have an account?
-                    <a href="#">Login</a>
+                    Don't have an account? <a href="#">Create one</a>
                 </p>
             </form>
         </main>
@@ -88,111 +99,151 @@ const handleRegister = () => {
 </template>
 
 <style scoped>
-/* Page wrapper */
 .page {
     min-height: 100vh;
-    background: #020617;
-    color: #e5e7eb;
+    background: #020617; /* Deep dark background */
+    color: #ffffff;
     display: flex;
     flex-direction: column;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Center container */
 .register-container {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 40px 20px;
 }
 
-/* Card */
+/* Updated Card Design */
 .register-card {
     width: 100%;
-    max-width: 380px;
+    max-width: 440px;
     background: #0f172a;
-    padding: 28px;
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    padding: 40px;
+    border-radius: 24px; /* Matches the rounded look in image */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Title */
+/* Icon Header */
+.icon-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.icon-box {
+    background: rgba(37, 99, 235, 0.1);
+    color: #3b82f6;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .register-card h2 {
     text-align: center;
-    margin-bottom: 18px;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
 }
 
-/* Error */
-.error {
-    background: #7f1d1d;
-    color: #fecaca;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-bottom: 12px;
+.subtitle {
     text-align: center;
+    color: #94a3b8;
+    font-size: 15px;
+    margin-bottom: 32px;
 }
 
-/* Input fields */
+/* Inputs with Icons */
 .field {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 14px;
+    margin-bottom: 20px;
 }
 
 .field label {
-    font-size: 13px;
-    margin-bottom: 4px;
-    color: #cbd5f5;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #e2e8f0;
 }
 
-.field input {
-    padding: 8px 10px;
-    border-radius: 4px;
-    border: 1px solid #334155;
-    background: #020617;
-    color: #ffffff;
-    outline: none;
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.field input::placeholder {
+.input-icon {
+    position: absolute;
+    left: 14px;
     color: #64748b;
 }
 
-.field input:focus {
-    border-color: #2563eb;
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    border-radius: 10px;
+    border: 1px solid #1e293b;
+    background: #020617;
+    color: #ffffff;
+    font-size: 15px;
+    transition: all 0.2s ease;
 }
 
-/* Button */
+.input-wrapper input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Gradient Button */
 .register-btn {
     width: 100%;
     margin-top: 10px;
-    padding: 10px;
-    border-radius: 4px;
+    padding: 14px;
+    border-radius: 10px;
     border: none;
-    background: #2563eb;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     color: #ffffff;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s;
 }
 
 .register-btn:hover {
-    background: #1d4ed8;
+    opacity: 0.9;
 }
 
-/* Redirect */
+/* Footer of Card */
 .redirect {
-    margin-top: 14px;
-    font-size: 13px;
+    margin-top: 24px;
+    font-size: 14px;
     text-align: center;
+    color: #94a3b8;
 }
 
 .redirect a {
-    color: #60a5fa;
+    color: #3b82f6;
+    font-weight: 600;
     text-decoration: none;
 }
 
-.redirect a:hover {
-    text-decoration: underline;
+.error-msg {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 </style>
