@@ -1,276 +1,173 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 
 import Navbar from "@/components/layout/Navbar.vue";
 import Sidebar from "@/components/layout/Sidebar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/common/Loader.vue";
+import VideoPlayer from "@/components/video/VideoPlayer.vue";
+import VideoDescription from "@/components/video/VideoDescription.vue";
+import VideoCard from "@/components/video/VideoCard.vue";
 
+
+const route = useRoute();
 const isLoading = ref(true);
 
-// Fake video data (replace with API)
+/* Mock video data (replace with API later) */
 const video = ref({
-    title: "Building Videotube with Vue 3",
-    views: "24,132 views",
-    date: "2 days ago",
-    description:
-        "In this video, we build a YouTube-like platform using Vue 3 and pure CSS.",
-    channel: {
-        name: "Videotube Channel",
-        subscribers: "12.4K subscribers",
-    },
+  id: route.params.id,
+  src: "/sample-video.mp4",
+  poster: "",
+  title: "Building Videotube with Vue 3",
+  views: "24,132 views",
+  date: "2 days ago",
+  description:
+    "In this video, we build a YouTube-like platform using Vue 3 and pure CSS. This includes routing, layouts, reusable components, and clean architecture.",
 });
 
+/* Suggested videos */
+const suggestions = ref(
+  Array.from({ length: 6 }, (_, i) => ({
+    id: i + 101,
+    title: `Suggested Video ${i + 1}`,
+    channel: "Another Channel",
+  }))
+);
+
 onMounted(() => {
-    setTimeout(() => {
-        isLoading.value = false;
-    }, 1500);
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 1500);
 });
 </script>
 
 <template>
-    <!-- Loader -->
-    <Loader v-if="isLoading" />
+  <Loader v-if="isLoading" />
 
-    <div v-else class="page">
-        <!-- Navbar -->
-        <Navbar />
+  <div v-else class="page">
+    <!-- Navbar -->
+    <Navbar />
 
-        <div class="layout">
-            <!-- Sidebar -->
-            <Sidebar />
+    <div class="layout">
+      <!-- Sidebar -->
+      <Sidebar />
 
-            <!-- Main Content -->
-            <main class="content">
-                <div class="watch-layout">
-                    <!-- Video Section -->
-                    <section class="video-section">
-                        <!-- Video Player -->
-                        <div class="video-player">
-                            <!-- Replace with <video> tag later -->
-                            <div class="video-placeholder">
-                                Video Player
-                            </div>
-                        </div>
+      <!-- Main Content -->
+      <main class="content">
+        <div class="watch-layout">
+          <!-- Left: Video -->
+          <section class="video-section">
+            <VideoPlayer
+              :src="video.src"
+              :poster="video.poster"
+            />
 
-                        <!-- Video Info -->
-                        <h2 class="video-title">{{ video.title }}</h2>
+            <VideoDescription
+              :title="video.title"
+              :views="video.views"
+              :date="video.date"
+              :description="video.description"
+            />
+          </section>
 
-                        <div class="video-meta">
-                            <span>{{ video.views }}</span>
-                            <span>•</span>
-                            <span>{{ video.date }}</span>
-                        </div>
+          <!-- Right: Suggestions -->
+          <aside class="suggestions">
+            <h3>Up next</h3>
 
-                        <!-- Channel Info -->
-                        <div class="channel-row">
-                            <div class="channel-left">
-                                <div class="avatar"></div>
-                                <div>
-                                    <h4>{{ video.channel.name }}</h4>
-                                    <p>{{ video.channel.subscribers }}</p>
-                                </div>
-                            </div>
-
-                            <button class="subscribe-btn">Subscribe</button>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="description">
-                            {{ video.description }}
-                        </div>
-                    </section>
-
-                    <!-- Suggested Videos -->
-                    <aside class="suggestions">
-                        <h3>Up next</h3>
-
-                        <div v-for="n in 6" :key="n" class="suggest-card">
-                            <div class="thumb"></div>
-                            <div class="info">
-                                <h4>Suggested Video {{ n }}</h4>
-                                <p>Channel Name</p>
-                                <span>12K views</span>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </main>
+            <div class="suggest-grid">
+              <VideoCard
+                v-for="item in suggestions"
+                :key="item.id"
+                :id="item.id"
+                :title="item.title"
+                :channel="item.channel"
+              />
+            </div>
+          </aside>
         </div>
-
-        <!-- Footer -->
-        <Footer />
+      </main>
     </div>
+
+    <!-- Footer -->
+    <Footer />
+  </div>
 </template>
 
 <style scoped>
-/* Page */
 .page {
-    min-height: 100vh;
-    background: #020617;
-    color: #e5e7eb;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #0a0e1a, #1a1f3a);
+  color: #e5e7eb;
 }
 
-/* Layout */
 .layout {
-    display: flex;
-    flex: 1;
+  display: flex;
+  flex: 1;
 }
 
-/* Content */
 .content {
-    flex: 1;
-    padding: 20px;
+  flex: 1;
+  padding: 32px;
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Watch layout */
 .watch-layout {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 24px;
 }
 
-/* Video section */
+/* Left */
 .video-section {
-    flex: 3;
+  flex: 3;
 }
 
-/* Player */
-.video-player {
-    width: 100%;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.video-placeholder {
-    height: 420px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #000;
-    color: #9ca3af;
-    font-size: 18px;
-}
-
-/* Title */
-.video-title {
-    margin-top: 14px;
-    font-size: 20px;
-}
-
-/* Meta */
-.video-meta {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #9ca3af;
-    display: flex;
-    gap: 6px;
-}
-
-/* Channel row */
-.channel-row {
-    margin-top: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.channel-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #1e293b;
-}
-
-.channel-left h4 {
-    margin: 0;
-    font-size: 14px;
-}
-
-.channel-left p {
-    margin: 0;
-    font-size: 12px;
-    color: #9ca3af;
-}
-
-.subscribe-btn {
-    padding: 8px 16px;
-    background: #dc2626;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.subscribe-btn:hover {
-    background: #b91c1c;
-}
-
-/* Description */
-.description {
-    margin-top: 14px;
-    padding: 12px;
-    background: #0f172a;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #cbd5f5;
-}
-
-/* Suggestions */
+/* Right */
 .suggestions {
-    flex: 1.4;
+  flex: 1.4;
 }
 
 .suggestions h3 {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
-.suggest-card {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    cursor: pointer;
-}
-
-.thumb {
-    width: 160px;
-    height: 90px;
-    background: #1e293b;
-    border-radius: 6px;
-}
-
-.info h4 {
-    margin: 0;
-    font-size: 13px;
-}
-
-.info p {
-    margin: 4px 0;
-    font-size: 12px;
-    color: #9ca3af;
-}
-
-.info span {
-    font-size: 12px;
-    color: #9ca3af;
+/* Suggestion grid */
+.suggest-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 /* Responsive */
 @media (max-width: 900px) {
-    .watch-layout {
-        flex-direction: column;
-    }
+  .watch-layout {
+    flex-direction: column;
+  }
 
-    .suggestions {
-        margin-top: 20px;
-    }
+  .suggestions {
+    margin-top: 24px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 </style>

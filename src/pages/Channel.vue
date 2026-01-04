@@ -1,201 +1,205 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 
 import Navbar from "@/components/layout/Navbar.vue";
 import Sidebar from "@/components/layout/Sidebar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/common/Loader.vue";
+import VideoCard from "@/components/video/VideoCard.vue";
 
-
+const route = useRoute();
 const isLoading = ref(true);
 
-// Fake channel data (replace with API later)
+/* Channel info (mock for now) */
 const channel = ref({
-    name: "Videotube Channel",
-    subscribers: "12.4K subscribers",
-    description: "This is a demo channel description for Videotube.",
+  name: route.params.username || "Videotube Channel",
+  subscribers: "12.4K subscribers",
+  description: "This is a demo channel description.",
 });
 
+/* Channel videos (mock data) */
+const videos = ref(
+  Array.from({ length: 6 }, (_, i) => ({
+    id: i + 1,
+    title: `Channel Video ${i + 1}`,
+    channel: channel.value.name,
+  }))
+);
+
 onMounted(() => {
-    setTimeout(() => {
-        isLoading.value = false;
-    }, 1500);
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 1500);
 });
 </script>
 
 <template>
-    <!-- Loader -->
-    <Loader v-if="isLoading" />
+  <Loader v-if="isLoading" />
 
-    <div v-else class="page">
-        <!-- Navbar -->
-        <Navbar />
+  <div v-else class="page">
+    <!-- Navbar -->
+    <Navbar />
 
-        <div class="layout">
-            <!-- Sidebar -->
-            <Sidebar />
+    <div class="layout">
+      <!-- Sidebar -->
+      <Sidebar />
 
-            <!-- Main Content -->
-            <main class="content">
-                <!-- Channel Header -->
-                <section class="channel-header">
-                    <div class="avatar"></div>
+      <!-- Main Content -->
+      <main class="content">
+        <!-- Channel Header -->
+        <section class="channel-header">
+          <div class="avatar"></div>
 
-                    <div class="channel-info">
-                        <h2>{{ channel.name }}</h2>
-                        <p class="subs">{{ channel.subscribers }}</p>
-                        <p class="desc">{{ channel.description }}</p>
-                    </div>
+          <div class="channel-info">
+            <h2>{{ channel.name }}</h2>
+            <p class="subs">{{ channel.subscribers }}</p>
+            <p class="desc">{{ channel.description }}</p>
+          </div>
 
-                    <button class="subscribe-btn">Subscribe</button>
-                </section>
+          <button class="subscribe-btn">Subscribe</button>
+        </section>
 
-                <!-- Channel Tabs -->
-                <nav class="channel-tabs">
-                    <button class="active">Videos</button>
-                    <button>Playlists</button>
-                    <button>About</button>
-                </nav>
+        <!-- Tabs -->
+        <nav class="channel-tabs">
+          <button class="active">Videos</button>
+          <button>Playlists</button>
+          <button>About</button>
+        </nav>
 
-                <!-- Videos -->
-                <section class="video-grid">
-                    <div v-for="n in 6" :key="n" class="video-card">
-                        <div class="thumbnail"></div>
-                        <h3>Channel Video {{ n }}</h3>
-                        <p>1.2K views • 2 days ago</p>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <!-- Footer -->
-        <Footer />
+        <!-- Videos -->
+        <section class="video-grid">
+          <VideoCard
+            v-for="video in videos"
+            :key="video.id"
+            :id="video.id"
+            :title="video.title"
+            :channel="video.channel"
+          />
+        </section>
+      </main>
     </div>
+
+    <!-- Footer -->
+    <Footer />
+  </div>
 </template>
 
 <style scoped>
-/* Page */
 .page {
-    min-height: 100vh;
-    background: #020617;
-    color: #e5e7eb;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #0a0e1a, #1a1f3a);
+  color: #e5e7eb;
 }
 
-/* Layout */
 .layout {
-    display: flex;
-    flex: 1;
+  display: flex;
+  flex: 1;
 }
 
-/* Content */
 .content {
-    flex: 1;
-    padding: 20px;
+  flex: 1;
+  padding: 32px;
+  animation: fadeIn 0.4s ease-in;
 }
 
-/* Channel Header */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Channel header */
 .channel-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: #0f172a;
-    padding: 20px;
-    border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.75);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #1e293b;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #1e293b;
 }
 
 .channel-info {
-    flex: 1;
+  flex: 1;
 }
 
 .channel-info h2 {
-    margin: 0;
+  margin: 0;
 }
 
 .subs {
-    font-size: 14px;
-    color: #9ca3af;
+  font-size: 14px;
+  color: #9ca3af;
 }
 
 .desc {
-    font-size: 14px;
-    margin-top: 6px;
-    color: #cbd5f5;
+  font-size: 14px;
+  margin-top: 6px;
+  color: #cbd5f5;
 }
 
 .subscribe-btn {
-    padding: 8px 16px;
-    background: #dc2626;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
+  padding: 8px 16px;
+  background: #dc2626;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .subscribe-btn:hover {
-    background: #b91c1c;
+  background: #b91c1c;
 }
 
 /* Tabs */
 .channel-tabs {
-    margin-top: 20px;
-    display: flex;
-    gap: 12px;
-    border-bottom: 1px solid #1e293b;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .channel-tabs button {
-    background: none;
-    border: none;
-    padding: 10px;
-    color: #cbd5f5;
-    cursor: pointer;
-    font-size: 14px;
+  background: none;
+  border: none;
+  padding: 10px 0;
+  font-size: 14px;
+  color: #94a3b8;
+  cursor: pointer;
 }
 
 .channel-tabs button.active {
-    color: #ffffff;
-    border-bottom: 2px solid #2563eb;
+  color: #e5e7eb;
+  border-bottom: 2px solid #60a5fa;
 }
 
-/* Video Grid */
+/* Grid */
 .video-grid {
-    margin-top: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
-/* Video Card */
-.video-card {
-    background: #0f172a;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.thumbnail {
-    height: 120px;
-    background: #1e293b;
-    border-radius: 6px;
-    margin-bottom: 8px;
-}
-
-.video-card h3 {
-    font-size: 14px;
-    margin: 0;
-}
-
-.video-card p {
-    font-size: 12px;
-    color: #9ca3af;
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 </style>
