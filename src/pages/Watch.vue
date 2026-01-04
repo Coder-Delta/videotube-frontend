@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 
-import Navbar from "@/components/Navbar.vue";
-import Sidebar from "@/components/Sidebar.vue";
-import Footer from "@/components/Footer.vue";
-import Loader from "@/components/Loader.vue";
+import Navbar from "@/components/layout/Navbar.vue";
+import Sidebar from "@/components/layout/Sidebar.vue";
+import Footer from "@/components/layout/Footer.vue";
+import Loader from "@/components/common/Loader.vue";
 
 const isLoading = ref(true);
 

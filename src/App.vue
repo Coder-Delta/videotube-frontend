@@ -1,16 +1,15 @@
+<script setup>
+  
+</script>
+
 <template>
   <div id="app">
-    <Navbar />
     <main class="main-content">
       <router-view />
     </main>
   </div>
 </template>
 
-<script setup>
-// layout components
-import Navbar from "@/components/layout/Navbar.vue";
-</script>
 
 <style>
 /* global layout styles */
