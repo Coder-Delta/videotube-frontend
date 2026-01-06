@@ -1,4 +1,5 @@
-import api from "./api.js";
+import api from "@/utils/api.js";
+import createFormData from "@/utils/fromData.js";
 
 const registerUser = async (userData) => {
     try {
@@ -11,7 +12,7 @@ const registerUser = async (userData) => {
 
 const loggedInUser = async (userData) => {
     try {
-        const response = await api.post('/users/loggedinuser', userData);
+        const response = await api.post('/users/login', userData);
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: "Something went wrong" };
@@ -58,36 +59,53 @@ const getCurrentUser = async () => {
 
 const updateUserProfile = async (userData) => {
     try {
-        const response = await api.patch('/users/update-profile', userData);
+        const response = await api.patch('/users/update-account', userData);
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: "Something went wrong" };
     }
 };
-
-const updateAvatar = async (avatarData) => {
+const updateAvatar = async (username, avatarFile) => {
     try {
-        const response = await api.patch('/users/update-avatar', avatarData);
-        return response.data;
+        const formData = new createFormData({
+            avatar: avatarFile,
+        });
+        const { data } = await api.patch(
+            `/users/a/${username}`,
+            formData
+        );
+        return data;
     }
     catch (error) {
-        throw error.response?.data || { message: "Something went wrong" };
+        throw new Error(
+            error.response?.data?.message || "Avatar update failed"
+        );
     }
 };
 
-const updateCoverPhoto = async (coverPhotoData) => {
+const updateCoverPhoto = async (username, coverPhotoFile) => {
     try {
-        const response = await api.patch('/users/update-cover-photo', coverPhotoData);
-        return response.data;
-    }
-    catch (error) {
-        throw error.response?.data || { message: "Something went wrong" };
+        const formData = new createFormData({
+            coverPhoto: coverPhotoFile,
+        });
+
+        const { data } = await api.patch(
+            `/users/c/${username}`,
+            formData
+        );
+
+        return data;
+    } catch (error) {
+        throw new Error(
+            error.response?.data?.message || "Cover photo update failed"
+        );
     }
 };
 
-const getUserChannelProfile = async (userId) => {
+
+const getUserChannelProfile = async (username) => {
     try {
-        const response = await api.get(`/users/channel/${userId}`);
+        const response = await api.get(`/users/c/${username}`);
         return response.data;
     }
     catch (error) {
@@ -97,7 +115,7 @@ const getUserChannelProfile = async (userId) => {
 
 const watchHistory = async (historyData) => {
     try {
-        const response = await api.post('/users/watch-history', historyData);
+        const response = await api.get('users/history', historyData);
         return response.data;
     }
     catch (error) {
