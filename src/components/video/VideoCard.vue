@@ -183,6 +183,7 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
   margin: 0;
   /* Line Clamping */
   display: -webkit-box;
+  /* stylelint-disable-next-line property-no-vendor-prefix */
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

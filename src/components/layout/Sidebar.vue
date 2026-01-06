@@ -35,7 +35,6 @@ const toggleSidebar = () => {
                 </div>
                 <div class="logo-text-group">
                     <span class="logo-main">VideoTube</span>
-                    <span class="logo-badge">PRO</span>
                 </div>
             </div>
 
@@ -63,7 +62,6 @@ const toggleSidebar = () => {
                 </div>
                 <div class="profile-info" v-if="isOpen">
                     <span class="user-name">Alex Rivera</span>
-                    <span class="user-plan">Premium Member</span>
                 </div>
             </div>
         </footer>

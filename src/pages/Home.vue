@@ -45,20 +45,10 @@ onMounted(() => {
             </header>
 
             <section class="video-grid">
-              <div 
-                v-for="(video, index) in videos" 
-                :key="video.id"
-                class="grid-item"
-                :style="{ '--delay': `${index * 0.05}s` }"
-              >
-                <VideoCard
-                  :id="video.id"
-                  :title="video.title"
-                  :channel="video.channel"
-                  :views="video.views"
-                  :time="video.time"
-                  :duration="video.duration"
-                />
+              <div v-for="(video, index) in videos" :key="video.id" class="grid-item"
+                :style="{ '--delay': `${index * 0.05}s` }">
+                <VideoCard :id="video.id" :title="video.title" :channel="video.channel" :views="video.views"
+                  :time="video.time" :duration="video.duration" />
               </div>
             </section>
 
@@ -84,14 +74,16 @@ onMounted(() => {
 }
 
 .main-layout {
-  display: flex; /* Creates the side-by-side columns */
+  display: flex;
+  /* Creates the side-by-side columns */
   flex: 1;
   overflow: hidden;
   width: 100%;
 }
 
 .scroller-area {
-  flex: 1; /* Takes up all remaining space to the right of sidebar */
+  flex: 1;
+  /* Takes up all remaining space to the right of sidebar */
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
@@ -99,8 +91,14 @@ onMounted(() => {
 }
 
 /* Custom Scrollbar */
-.scroller-area::-webkit-scrollbar { width: 8px; }
-.scroller-area::-webkit-scrollbar-track { background: transparent; }
+.scroller-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroller-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .scroller-area::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -113,8 +111,17 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-.content-header { margin-bottom: 40px; }
-.header-line { width: 40px; height: 4px; background: #3b82f6; border-radius: 2px; margin-bottom: 12px; }
+.content-header {
+  margin-bottom: 40px;
+}
+
+.header-line {
+  width: 40px;
+  height: 4px;
+  background: #3b82f6;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
 
 .page-title {
   font-size: 32px;
@@ -137,10 +144,24 @@ onMounted(() => {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.page-fade-enter-active, .page-fade-leave-active { transition: opacity 0.5s; }
-.page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
 </style>

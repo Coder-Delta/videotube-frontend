@@ -5,6 +5,15 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      "/api/v1": {
+        target: "https://chai-aur-backend-tib4.onrender.com",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   plugins: [
     vue(),
   ],

@@ -11,11 +11,7 @@ import {
 <template>
   <header class="navbar">
     <div class="navbar-glass"></div>
-
-    <div class="navbar-left">
-      <button class="icon-btn mobile-menu">
-        <LayoutGrid :size="20" />
-      </button>
+    <div class="navbar-left">    
       <div class="logo-group">
         <div class="logo-mark"></div>
         <span class="logo-text">VideoTube</span>
@@ -48,7 +44,7 @@ import {
       
       <div class="auth-buttons">
         <button class="btn-secondary">Sign In</button>
-        <button class="btn-primary">Join Premium</button>
+        <button class="btn-primary">Sign Up</button>
       </div>
     </div>
   </header>
