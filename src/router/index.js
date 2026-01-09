@@ -10,6 +10,7 @@ import Upload from "@/pages/Upload.vue";
 import Trending from "@/pages/Trending.vue";
 import Subscriptions from "@/pages/Subscriptions.vue";
 import Playlist from "@/pages/Playlist.vue";
+import Profile from "@/pages/Profile.vue";
 
 const route = useRouter();
 
@@ -35,6 +36,11 @@ const routes = [
     path: "/playlist",
     name: "Playlist",
     component: Playlist,
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: Profile,
   },
   {
     path: "/watch/:id",

@@ -3,19 +3,28 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import VideoCard from '@/components/video/VideoCard.vue';
 import Loader from '@/components/layout/Loader.vue';
+import { videoService } from '@/services/videoService';
 
 const isLoading = ref(true);
-const videos = ref(Array.from({ length: 6 }, (_, i) => ({
-    id: i + 300,
-    title: `Subscription Update #${i + 1}`,
-    channel: 'My Fav Channel',
-    views: '200K views',
-    time: '1 hour ago',
-    duration: '10:00'
-})));
+const videos = ref([]);
 
-onMounted(() => {
-    setTimeout(() => isLoading.value = false, 800);
+onMounted(async () => {
+    try {
+        const response = await videoService.getSubscriptions();
+        videos.value = response.data.data;
+    } catch (error) {
+        console.error("Failed to fetch subscriptions:", error);
+        videos.value = Array.from({ length: 6 }, (_, i) => ({
+            id: i + 300,
+            title: `Subscription Update #${i + 1}`,
+            channel: 'My Fav Channel',
+            views: '200K views',
+            time: '1 hour ago',
+            duration: '10:00'
+        }));
+    } finally {
+        isLoading.value = false;
+    }
 });
 </script>
 

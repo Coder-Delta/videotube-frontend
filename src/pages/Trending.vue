@@ -3,19 +3,29 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import VideoCard from '@/components/video/VideoCard.vue';
 import Loader from '@/components/layout/Loader.vue';
+import { videoService } from '@/services/videoService';
 
 const isLoading = ref(true);
-const videos = ref(Array.from({ length: 8 }, (_, i) => ({
-    id: i + 200,
-    title: `Trending Video #${i + 1}`,
-    channel: 'Popular Creator',
-    views: '1.5M views',
-    time: '12 hours ago',
-    duration: '15:30'
-})));
+const videos = ref([]);
 
-onMounted(() => {
-    setTimeout(() => isLoading.value = false, 800);
+onMounted(async () => {
+    try {
+        const response = await videoService.getTrending();
+        videos.value = response.data.data; // Assuming standard API response structure
+    } catch (error) {
+        console.error("Failed to fetch trending videos:", error);
+        // Fallback mock data for demo if API fails
+        videos.value = Array.from({ length: 8 }, (_, i) => ({
+            id: i + 200,
+            title: `Trending Video #${i + 1}`,
+            channel: 'Popular Creator',
+            views: '1.5M views',
+            time: '12 hours ago',
+            duration: '15:30'
+        }));
+    } finally {
+        isLoading.value = false;
+    }
 });
 </script>
 

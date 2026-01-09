@@ -3,16 +3,25 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import Loader from '@/components/layout/Loader.vue';
 import { ListVideo } from 'lucide-vue-next';
+import { playlistService } from '@/services/playlistService';
 
 const isLoading = ref(true);
-const playlists = ref([
-    { id: 1, name: "Watch Later", count: 12 },
-    { id: 2, name: "Music Favorites", count: 45 },
-    { id: 3, name: "Vue.js Tutorials", count: 8 }
-]);
+const playlists = ref([]);
 
-onMounted(() => {
-    setTimeout(() => isLoading.value = false, 800);
+onMounted(async () => {
+    try {
+        const response = await playlistService.getMyPlaylists();
+        playlists.value = response.data.data;
+    } catch (error) {
+        console.error("Failed to fetch playlists:", error);
+        playlists.value = [
+            { id: 1, name: "Watch Later", count: 12 },
+            { id: 2, name: "Music Favorites", count: 45 },
+            { id: 3, name: "Vue.js Tutorials", count: 8 }
+        ];
+    } finally {
+        isLoading.value = false;
+    }
 });
 </script>
 
