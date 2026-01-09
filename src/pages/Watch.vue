@@ -19,6 +19,12 @@ const video = ref({
   views: "24,132 views",
   date: "2 days ago",
   description: "Learn how to build a high-performance video streaming platform. We cover everything from architecture to glassmorphism UI.",
+  channel: {
+    name: "Cholochitro.exe",
+    username: "cholochitro",
+    avatar: "",
+    subscribers: "124K"
+  }
 });
 
 const loadVideo = (id) => {
@@ -32,7 +38,13 @@ const loadVideo = (id) => {
       title: `Now Playing Video ID: ${id}`,
       views: `${Math.floor(Math.random() * 500) + 10}K views`,
       date: "Just now",
-      description: `This is the description for the dynamically loaded video with ID ${id}. It demonstrates route monitoring and state updates.`
+      description: `This is the description for the dynamically loaded video with ID ${id}. It demonstrates route monitoring and state updates.`,
+      channel: {
+        name: "Creator " + id,
+        username: "creator" + id,
+        avatar: `https://picsum.photos/seed/${id}/50/50`,
+        subscribers: `${Math.floor(Math.random() * 100)}K`
+      }
     };
     isLoading.value = false;
     // Scroll to top
@@ -72,7 +84,7 @@ const suggestions = ref(
         <VideoPlayer :src="video.src" :poster="video.poster" />
         <div class="description-card">
           <VideoDescription :title="video.title" :views="video.views" :date="video.date"
-            :description="video.description" />
+            :description="video.description" :channel="video.channel" />
         </div>
         <Comments />
       </section>

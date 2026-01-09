@@ -1,357 +1,258 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { CheckCircle2, Bell, Share2 } from "lucide-vue-next";
-
+import { CheckCircle2 } from "lucide-vue-next";
 import Navbar from "@/components/layout/Navbar.vue";
-import Sidebar from "@/components/layout/Sidebar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/layout/Loader.vue";
 import VideoCard from "@/components/video/VideoCard.vue";
 
 const route = useRoute();
 const isLoading = ref(true);
+const activeTab = ref("Videos");
 
 const channel = ref({
-  name: route.params.username || "Cholochitro.exe Creative",
-  subscribers: "124K",
-  description: "Visual storytelling through high-fidelity digital experiences. Join our journey in crafting the future of the web.",
-  videosCount: "142 videos"
+  name: "",
+  username: "",
+  subscribers: "0",
+  description: "",
+  avatar: "",
+  coverImage: "",
+  videosCount: "0 videos"
 });
+const videos = ref([]);
+const isOwner = ref(false);
 
-const videos = ref(
-  Array.from({ length: 8 }, (_, i) => ({
-    id: i + 1,
-    title: `Cinematic Production Episode ${i + 1}`,
-    channel: channel.value.name,
-    views: "45K views",
-    time: "3 days ago",
-    duration: "10:24"
-  }))
-);
+const tabs = ["Videos", "Shorts", "Playlists", "Community", "About"];
 
-onMounted(() => {
+onMounted(async () => {
+  // 1. Determine Owner
+  const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+  const targetUsername = route.params.username; // Should be passed via route
+
+  // Simple check (adjust based on real API data e.g. using IDs)
+  if (currentUser?.username === targetUsername) {
+    isOwner.value = true;
+  }
+
+  // 2. Fetch/Simulate Data
   setTimeout(() => {
+    // Mock data logic - replace with real API call
+    const baseName = targetUsername || "Cholochitro.exe";
+
+    channel.value = {
+      name: isOwner.value && currentUser.fullName ? currentUser.fullName : baseName,
+      username: "@" + (isOwner.value && currentUser.username ? currentUser.username : "unknown"),
+      subscribers: "124K",
+      description: "Visual storytelling through high-fidelity digital experiences.",
+      // Use logged-in user's avatar if owner, else mock
+      avatar: isOwner.value && currentUser?.avatar ? currentUser.avatar : "",
+      coverImage: isOwner.value && currentUser?.coverImage ? currentUser.coverImage : "",
+      videosCount: "142 videos"
+    };
+
+    videos.value = Array.from({ length: 8 }, (_, i) => ({
+      id: i + 1,
+      title: `Creative Video #${i + 1}`,
+      channel: channel.value.name,
+      views: "12K views",
+      time: "1 day ago",
+      duration: "12:00"
+    }));
+
     isLoading.value = false;
-  }, 1200);
+  }, 600);
 });
 </script>
 
 <template>
   <Loader v-if="isLoading" />
 
-  <div v-else class="page-container">
+  <div v-else>
     <Navbar />
 
-    <div class="layout-main">
-      <Sidebar />
-
-      <main class="channel-view">
-        <header class="channel-hero">
-          <div class="banner-gradient"></div>
-
-          <div class="header-content">
-            <div class="avatar-glow">
-              <div class="avatar-large">{{ channel.name.charAt(0) }}</div>
-            </div>
-
-            <div class="info-block">
-              <div class="name-row">
-                <h1 class="channel-name">{{ channel.name }}</h1>
-                <CheckCircle2 :size="20" class="verified-icon" />
-              </div>
-
-              <div class="meta-row">
-                <span class="meta-bold">@{{ channel.name.toLowerCase().replace(/\s/g, '') }}</span>
-                <span class="dot"></span>
-                <span>{{ channel.subscribers }} subscribers</span>
-                <span class="dot"></span>
-                <span>{{ channel.videosCount }}</span>
-              </div>
-
-              <p class="channel-desc">{{ channel.description }}</p>
-            </div>
-
-            <div class="action-stack">
-              <button class="btn-subscribe">Subscribe</button>
-              <div class="btn-group-row">
-                <button class="btn-icon-outline">
-                  <Bell :size="18" />
-                </button>
-                <button class="btn-icon-outline">
-                  <Share2 :size="18" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <nav class="navigation-tabs">
-          <button class="tab-item active">Videos</button>
-          <button class="tab-item">Shorts</button>
-          <button class="tab-item">Playlists</button>
-          <button class="tab-item">Community</button>
-          <button class="tab-item">About</button>
-        </nav>
-
-        <section class="video-grid">
-          <div v-for="(video, index) in videos" :key="video.id" class="grid-animation-wrapper"
-            :style="{ '--delay': `${index * 0.05}s` }">
-            <VideoCard :id="video.id" :title="video.title" :channel="video.channel" :views="video.views"
-              :time="video.time" :duration="video.duration" />
-          </div>
-        </section>
-
-        <Footer />
-      </main>
+    <!-- Cover -->
+    <div class="cover-container">
+      <img v-if="channel.coverImage" :src="channel.coverImage" alt="Cover" class="cover-img" />
+      <div v-else class="cover-placeholder"></div>
     </div>
+
+    <main class="container">
+      <!-- Header -->
+      <header class="channel-header">
+        <div class="avatar-col">
+          <img v-if="channel.avatar" :src="channel.avatar" alt="Avatar" class="avatar-img" />
+          <div v-else class="avatar-placeholder">{{ channel.name.charAt(0) }}</div>
+        </div>
+
+        <div class="info-col">
+          <h1>{{ channel.name }}
+            <CheckCircle2 :size="20" fill="var(--pico-primary)" color="var(--pico-background-color)" />
+          </h1>
+          <div class="meta">
+            <span>{{ channel.username }}</span> • <span>{{ channel.subscribers }} subscribers</span> • <span>{{
+              channel.videosCount }}</span>
+          </div>
+          <p class="desc">{{ channel.description }}</p>
+
+          <div class="actions">
+            <button v-if="!isOwner" class="subscribe-btn">Subscribe</button>
+            <button v-else class="outline secondary" @click="$router.push('/profile')">Manage Channel</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <a v-for="tab in tabs" :key="tab" :class="{ active: activeTab === tab }" @click="activeTab = tab">{{ tab }}</a>
+      </div>
+
+      <!-- Content -->
+      <div v-if="activeTab === 'Videos'" class="video-grid">
+        <VideoCard v-for="video in videos" :key="video.id" v-bind="video" />
+      </div>
+
+      <div v-else class="empty-state">
+        <p>No content in {{ activeTab }} yet.</p>
+      </div>
+    </main>
+    <Footer />
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-.page-container {
-  min-height: 100vh;
-  background-color: #0b0f1a;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+/* Minimalist & Clean Styles */
+.cover-container {
+  width: 100%;
+  height: 200px;
+  background: var(--pico-muted-border-color);
+  overflow: hidden;
 }
 
-.layout-main {
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, #333, #444);
+}
+
+.channel-header {
   display: flex;
+  gap: 2rem;
+  padding: 2rem 0;
+  align-items: flex-start;
 }
 
-.channel-view {
-  flex: 1;
-  padding: 0 40px 40px 40px;
-  /* Adjust based on Sidebar width */
-  margin-left: 0;
-  transition: all 0.4s ease;
-}
-
-/* Header & Banner Style */
-.channel-hero {
-  position: relative;
-  padding: 60px 0 40px;
-  margin-bottom: 20px;
-}
-
-.banner-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 180px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 0 0 24px 24px;
-  opacity: 0.5;
-}
-
-.header-content {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 32px;
-  z-index: 2;
-}
-
-.avatar-glow {
-  padding: 6px;
-  background: rgba(59, 130, 246, 0.2);
+.avatar-col img,
+.avatar-placeholder {
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+  object-fit: cover;
 }
 
-.avatar-large {
-  width: 128px;
-  height: 128px;
-  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
-  border-radius: 50%;
-  border: 4px solid #0b0f1a;
+.avatar-placeholder {
+  background: var(--pico-card-background-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
-  font-weight: 800;
-  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--pico-primary);
+  border: 2px solid var(--pico-muted-border-color);
 }
 
-.info-block {
-  flex: 1;
-  padding-bottom: 10px;
-}
-
-.name-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.channel-name {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: #fff;
+.info-col h1 {
   margin: 0;
-}
-
-.verified-icon {
-  color: #3b82f6;
-}
-
-.meta-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #94a3b8;
-  font-size: 15px;
-  margin-bottom: 12px;
+  gap: 0.5rem;
+  font-size: 2rem;
 }
 
-.meta-bold {
-  color: #fff;
-  font-weight: 600;
+.meta {
+  color: var(--pico-muted-color);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
 }
 
-.dot {
-  width: 4px;
-  height: 4px;
-  background: #334155;
-  border-radius: 50%;
-}
-
-.channel-desc {
+.desc {
+  color: var(--pico-muted-color);
+  font-size: 0.95rem;
   max-width: 600px;
-  color: #94a3b8;
-  font-size: 14px;
-  line-height: 1.6;
+  margin-bottom: 1rem;
 }
 
-/* Actions */
-.action-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 10px;
-}
-
-.btn-subscribe {
-  padding: 12px 32px;
-  background: #fff;
-  color: #000;
-  border: none;
-  border-radius: 30px;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-subscribe:hover {
-  background: #e2e8f0;
-  transform: scale(1.05);
-}
-
-.btn-group-row {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-icon-outline {
-  flex: 1;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-icon-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Tabs Navigation */
-.navigation-tabs {
-  display: flex;
-  gap: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 32px;
-}
-
-.tab-item {
-  background: none;
-  border: none;
-  padding: 12px 0;
-  color: #64748b;
-  font-size: 15px;
+.subscribe-btn {
+  border-radius: 99px;
+  padding: 0.5rem 1.5rem;
+  width: auto;
   font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 2rem;
+}
+
+.tabs a {
+  padding: 0.75rem 0;
   cursor: pointer;
-  position: relative;
-  transition: color 0.3s;
+  color: var(--pico-muted-color);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
 }
 
-.tab-item.active {
-  color: #fff;
+.tabs a:hover {
+  color: var(--pico-color);
 }
 
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #fff;
+.tabs a.active {
+  color: var(--pico-color);
+  border-bottom-color: var(--pico-color);
 }
 
-.tab-item:hover {
-  color: #fff;
-}
-
-/* Video Grid Animation */
 .video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
 }
 
-.grid-animation-wrapper {
-  opacity: 0;
-  animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  animation-delay: var(--delay);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.empty-state {
+  padding: 4rem;
+  text-align: center;
+  color: var(--pico-muted-color);
 }
 
 @media (max-width: 768px) {
-  .header-content {
+  .channel-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  .action-stack {
-    width: 100%;
+  .info-col h1 {
+    justify-content: center;
   }
 
-  .channel-view {
-    padding: 20px;
+  .cover-container {
+    height: 120px;
+  }
+
+  .avatar-col img,
+  .avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    margin-top: -50px;
+    border: 4px solid var(--pico-background-color);
   }
 }
 </style>
