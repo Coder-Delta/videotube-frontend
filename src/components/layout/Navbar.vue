@@ -120,11 +120,12 @@ const logout = () => {
         <div class="dropdown-menu" :class="{ 'show': dropdownOpen }">
           <div class="dropdown-header">
             <div class="header-avatar">
-              <User size="24" />
+              <img v-if="currentUser.avatar" :src="currentUser.avatar" alt="Avatar" />
+              <User v-else size="24" />
             </div>
             <div class="header-info">
-              <strong>{{ currentUser.name || 'User' }}</strong>
-              <small>{{ currentUser.email }}</small>
+              <strong>{{ currentUser.fullName || currentUser.username || 'User' }}</strong>
+              <small>@{{ currentUser.username || 'username' }}</small>
             </div>
           </div>
 
@@ -242,16 +243,12 @@ const logout = () => {
   padding-left: 2.5rem;
   border-radius: 99px;
   /* Pill shape */
-  background-color: var(--pico-secondary-background);
-  border: 1px solid transparent;
+  background-color: var(--pico-form-element-background-color);
+  border: 1px solid var(--pico-form-element-border-color);
+  color: var(--pico-color);
   transition: all 0.2s;
   font-size: 0.9rem;
-  -webkit-appearance: none;
-  /* Remove default styling */
-  appearance: none;
-  background-image: none !important;
-  /* Remove Pico CSS default icon */
-  background-position: unset !important;
+  /* Keep custom padding but allow theme vars */
 }
 
 /* Hide native search icons to prevent duplication */
@@ -263,9 +260,9 @@ const logout = () => {
 }
 
 .search-input:focus {
-  background-color: var(--pico-background-color);
   border-color: var(--pico-primary);
-  box-shadow: 0 0 0 2px rgba(var(--pico-primary-rgb), 0.2);
+  box-shadow: 0 0 0 2px var(--pico-primary-focus);
+  background-color: var(--pico-form-element-active-background-color);
 }
 
 /* Actions Styles */
@@ -439,6 +436,15 @@ const logout = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  /* Added */
+}
+
+/* Added explicit image style for header avatar */
+.header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .header-info {
@@ -475,12 +481,20 @@ const logout = () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem 1rem;
+  /* Increased padding */
   border-radius: 8px;
   color: var(--pico-color);
   text-decoration: none;
-  font-size: 0.85rem;
-  transition: background 0.1s;
+  font-size: 0.9rem;
+  /* Increased font size slightly */
+  transition: all 0.2s;
+  margin-bottom: 0.25rem;
+  /* Add spacing between items */
+}
+
+.dropdown-item:last-child {
+  margin-bottom: 0;
 }
 
 .dropdown-item:hover {

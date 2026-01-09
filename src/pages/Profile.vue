@@ -2,69 +2,74 @@
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
-import { User, Mail, Calendar, Edit3, Settings, Shield, Video, BarChart2, Save, X, LogOut, Upload } from 'lucide-vue-next';
+import { User, LogOut, Edit3, Save, Moon, Sun, Monitor } from 'lucide-vue-next';
 
 const router = useRouter();
 const currentUser = ref(null);
 const isEditing = ref(false);
-const showSettingsModal = ref(false);
+const currentTheme = ref('auto');
 
-const editForm = reactive({
-    name: '',
-    email: '',
-    bio: 'Content Creator'
-});
+const editForm = reactive({ name: '', bio: '' });
 
 onMounted(() => {
+    // Load User
     const user = localStorage.getItem('user');
     if (user) {
         currentUser.value = JSON.parse(user);
-        // Initialize form with defaults or existing values
-        editForm.name = currentUser.value.name || '';
-        editForm.email = currentUser.value.email || '';
-        editForm.bio = currentUser.value.bio || 'Content Creator';
+        editForm.name = currentUser.value.fullName || currentUser.value.name; // Handle potentially different naming
+        editForm.bio = currentUser.value.bio || 'Digital Creator';
     }
+
+    // Load Theme
+    const savedTheme = localStorage.getItem('pico_theme') || 'auto';
+    setTheme(savedTheme);
 });
 
-const toggleEdit = () => {
-    if (isEditing.value) {
-        // Cancel edit
-        isEditing.value = false;
+const formatDate = (dateString) => {
+    if (!dateString) return 'Member since forever';
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+};
+
+const setTheme = (theme) => {
+    currentTheme.value = theme;
+    localStorage.setItem('pico_theme', theme);
+    const html = document.querySelector('html');
+
+    if (theme === 'auto') {
+        html.removeAttribute('data-theme');
     } else {
-        // Start edit
-        // Reset form to current values
-        editForm.name = currentUser.value.name;
-        editForm.email = currentUser.value.email;
-        editForm.bio = currentUser.value.bio || 'Content Creator';
-        isEditing.value = true;
+        html.setAttribute('data-theme', theme);
     }
+};
+
+const toggleEdit = () => {
+    if (!isEditing.value) {
+        editForm.name = currentUser.value.fullName || currentUser.value.name;
+        editForm.bio = currentUser.value.bio || 'Digital Creator';
+    }
+    isEditing.value = !isEditing.value;
 };
 
 const saveProfile = () => {
     if (currentUser.value) {
-        currentUser.value.name = editForm.name;
-        currentUser.value.email = editForm.email;
+        currentUser.value.fullName = editForm.name; // Standardize on fullName
+        currentUser.value.name = editForm.name; // Keep name for compat
         currentUser.value.bio = editForm.bio;
 
         localStorage.setItem('user', JSON.stringify(currentUser.value));
         isEditing.value = false;
+        // Trigger generic storage event if other tabs need update
+        window.dispatchEvent(new Event('storage'));
     }
 };
 
-const openSettings = () => {
-    showSettingsModal.value = true;
-};
-
-const closeSettings = () => {
-    showSettingsModal.value = false;
-};
-
 const goToChannel = () => {
-    const username = currentUser.value?.name?.replace(/\s+/g, '').toLowerCase() || 'user';
-    router.push({ name: 'Channel', params: { username } });
+    if (!currentUser.value) return;
+    const username = currentUser.value.username || 'user';
+    router.push(`/channel/${username}`);
 };
 
-const handleLogout = () => {
+const logout = () => {
     localStorage.removeItem('user');
     currentUser.value = null;
     router.push('/login');
@@ -73,304 +78,242 @@ const handleLogout = () => {
 
 <template>
     <BaseLayout>
-        <div class="container profile-page" v-if="currentUser">
-            <div class="grid profile-grid">
-                <!-- Left Column: User Card -->
-                <aside>
-                    <article class="profile-card">
-                        <div class="card-header centered">
-                            <div class="avatar-large">
-                                <User v-if="!currentUser.avatar" size="64" />
-                                <img v-else :src="currentUser.avatar" alt="Avatar" />
-                            </div>
-                            <h2 v-if="!isEditing">{{ currentUser.name }}</h2>
-                            <input v-else v-model="editForm.name" type="text" placeholder="Name" aria-label="Name" />
+        <div class="container profile-container">
+            <div v-if="currentUser" class="profile-card">
 
-                            <p class="subtitle" v-if="!isEditing">{{ currentUser.bio || 'Content Creator' }}</p>
-                            <input v-else v-model="editForm.bio" type="text" placeholder="Bio" aria-label="Bio" />
-                        </div>
+                <!-- Avatar Section -->
+                <div class="profile-header">
+                    <div class="avatar-wrapper">
+                        <img v-if="currentUser.avatar" :src="currentUser.avatar" alt="Avatar" />
+                        <div v-else class="avatar-placeholder">{{ (currentUser.name || 'U').charAt(0) }}</div>
+                    </div>
+                </div>
 
-                        <div class="card-body">
-                            <ul class="details-list">
-                                <li>
-                                    <Mail size="18" />
-                                    <span v-if="!isEditing">{{ currentUser.email }}</span>
-                                    <input v-else v-model="editForm.email" type="email" placeholder="Email"
-                                        aria-label="Email" />
-                                </li>
-                                <li>
-                                    <Calendar size="18" />
-                                    <span>Joined Jan 2024</span>
-                                </li>
-                                <li>
-                                    <Shield size="18" />
-                                    <span>Verified Account</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="card-footer centered">
-                            <div v-if="!isEditing" class="action-buttons-vertical">
-                                <button @click="toggleEdit" class="secondary outline">
-                                    <Edit3 size="18" /> Edit Profile
-                                </button>
-                                <button @click="openSettings" class="contrast outline">
-                                    <Settings size="18" /> Settings
-                                </button>
-                                <button @click="handleLogout" class="outline"
-                                    style="--pico-color: var(--pico-del-color); border-color: var(--pico-del-color); color: var(--pico-del-color);">
-                                    <LogOut size="18" /> Sign Out
-                                </button>
-                            </div>
-                            <div v-else class="edit-actions">
-                                <button @click="saveProfile" class="primary">
-                                    <Save size="18" /> Save
-                                </button>
-                                <button @click="toggleEdit" class="secondary outline">
-                                    <X size="18" /> Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-                </aside>
-
-                <!-- Right Column: Stats & Content -->
-                <section class="main-content">
-                    <!-- Stats Row -->
-                    <div class="grid stats-grid">
-                        <article class="stat-card">
-                            <div class="stat-icon">
-                                <User size="24" />
-                            </div>
-                            <div class="stat-value">1.2K</div>
-                            <div class="stat-label">Subscribers</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="stat-icon"><Video size="24" /></div>
-                            <div class="stat-value">45</div>
-                            <div class="stat-label">Videos</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="stat-icon">
-                                <BarChart2 size="24" />
-                            </div>
-                            <div class="stat-value">150K</div>
-                            <div class="stat-label">Views</div>
-                        </article>
+                <!-- Info Section -->
+                <div class="profile-body">
+                    <div v-if="!isEditing" class="info-view">
+                        <h1>{{ currentUser.fullName || currentUser.name }}</h1>
+                        <p class="username">@{{ currentUser.username }}</p>
+                        <p class="bio">{{ currentUser.bio || 'Digital Creator' }}</p>
+                        <small class="joined-date">{{ formatDate(currentUser.createdAt) }}</small>
                     </div>
 
-                    <!-- Quick Actions -->
-                    <article class="quick-actions">
-                        <header><strong>Quick Actions</strong></header>
-                        <div class="grid">
-                            <button @click="goToChannel" class="secondary">
-                                <Video size="18" /> My Channel
-                            </button>
-                            <router-link to="/upload" role="button" class="primary">
-                                <Upload size="18" /> Upload Video
-                            </router-link>
-                        </div>
-                    </article>
+                    <div v-else class="info-edit">
+                        <label>Full Name
+                            <input v-model="editForm.name" type="text" />
+                        </label>
+                        <label>Bio
+                            <input v-model="editForm.bio" type="text" />
+                        </label>
+                    </div>
+                </div>
 
-                    <!-- Recent Activity -->
-                    <article class="activity-feed">
-                        <header><strong>Recent Uploads</strong></header>
-                        <div class="empty-state">
-                            <p>No recent uploads to show.</p>
-                            <small>Start sharing your content with the world!</small>
-                        </div>
-                    </article>
-                </section>
+                <!-- Actions -->
+                <div class="profile-actions">
+                    <button v-if="!isEditing" @click="toggleEdit" class="secondary outline btn-sm">
+                        <Edit3 size="16" /> Edit Profile
+                    </button>
+                    <div v-else class="edit-buttons">
+                        <button @click="saveProfile" class="btn-sm">Save</button>
+                        <button @click="toggleEdit" class="secondary outline btn-sm">Cancel</button>
+                    </div>
+
+                    <button @click="goToChannel" class="outline btn-sm">View Channel</button>
+                </div>
+
+                <hr />
+
+                <!-- Theme Switcher -->
+                <div class="theme-section">
+                    <h4>Appearance</h4>
+                    <div class="theme-toggles">
+                        <button @click="setTheme('light')" :class="{ outline: currentTheme !== 'light' }"
+                            aria-label="Light Mode">
+                            <Sun size="18" />
+                        </button>
+                        <button @click="setTheme('dark')" :class="{ outline: currentTheme !== 'dark' }"
+                            aria-label="Dark Mode">
+                            <Moon size="18" />
+                        </button>
+                        <button @click="setTheme('auto')" :class="{ outline: currentTheme !== 'auto' }"
+                            aria-label="Auto System">
+                            <Monitor size="18" />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="footer-actions">
+                    <button @click="logout" class="contrast outline btn-sm">
+                        <LogOut size="16" /> Sign Out
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Login Prompt -->
+            <div v-else class="login-prompt">
+                <article>
+                    <h3>Join the Community</h3>
+                    <p>Sign in to manage your profile and preferences.</p>
+                    <router-link to="/login" role="button">Sign In</router-link>
+                </article>
             </div>
         </div>
-
-        <div v-else class="login-prompt container">
-            <article class="centered-card">
-                <h3>Please Sign In</h3>
-                <p>You need to be logged in to view your profile.</p>
-                <router-link to="/login" role="button">Sign In</router-link>
-            </article>
-        </div>
-
-        <!-- Settings Modal -->
-        <dialog :open="showSettingsModal">
-            <article>
-                <header>
-                    <button aria-label="Close" rel="prev" @click="closeSettings"></button>
-                    <h3>Account Settings</h3>
-                </header>
-                <p>
-                    Manage your account preferences, privacy, and notifications here.
-                </p>
-                <br>
-                <fieldset>
-                    <label>
-                        <input type="checkbox" checked />
-                        Email Notifications
-                    </label>
-                    <label>
-                        <input type="checkbox" />
-                        Private Profile
-                    </label>
-                </fieldset>
-                <footer>
-                    <button class="secondary" @click="closeSettings">Close</button>
-                    <button @click="closeSettings">Save Changes</button>
-                </footer>
-            </article>
-        </dialog>
     </BaseLayout>
 </template>
 
 <style scoped>
-.profile-page {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+.profile-container {
+    max-width: 600px;
+    padding: 3rem 1rem;
+    min-height: 80vh;
 }
 
-.profile-grid {
-    grid-template-columns: 1fr 2fr;
-    align-items: start;
-    gap: 2rem;
-}
-
-@media (max-width: 992px) {
-    .profile-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Profile Card */
 .profile-card {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.centered {
+    background: var(--pico-card-background-color);
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--pico-muted-border-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow */
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
-.avatar-large {
+/* Avatar */
+.avatar-wrapper {
     width: 120px;
     height: 120px;
-    background: var(--pico-secondary-background);
+    margin: 0 auto 1.5rem;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--pico-primary);
-    border: 4px solid var(--pico-card-background-color);
-    box-shadow: 0 0 0 2px var(--pico-muted-border-color);
-    margin-bottom: 1rem;
     overflow: hidden;
+    background: var(--pico-secondary-background);
+    border: 4px solid var(--pico-background-color);
+    box-shadow: 0 0 0 1px var(--pico-muted-border-color);
 }
 
-.avatar-large img {
+.avatar-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.subtitle {
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
     color: var(--pico-muted-color);
 }
 
-.details-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
+/* Typography */
+.info-view h1 {
+    margin-bottom: 0.25rem;
+    font-size: 1.75rem;
 }
 
-.details-list li {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    background: var(--pico-background-color);
-    padding: 0.75rem;
-    border-radius: var(--pico-border-radius);
-    width: 100%;
-}
-
-.action-buttons-vertical {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-.edit-actions {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-.edit-actions button {
-    flex: 1;
-}
-
-/* Stats */
-.stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.stat-card {
-    text-align: center;
-    padding: 1.5rem;
-    margin-bottom: 0;
-}
-
-.stat-icon {
+.username {
     color: var(--pico-primary);
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
-.stat-value {
-    font-size: 2rem;
-    font-weight: bold;
-    line-height: 1.2;
-}
-
-.stat-label {
+.bio {
     color: var(--pico-muted-color);
-    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
-/* Activity */
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
+.joined-date {
     color: var(--pico-muted-color);
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 1.5rem;
 }
 
-/* Login Prompt */
-.login-prompt {
+/* Edit State */
+.info-edit {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+/* Buttons */
+.profile-actions {
     display: flex;
+    gap: 0.75rem;
     justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 99px;
+    display: flex;
     align-items: center;
-    min-height: 60vh;
+    gap: 0.5rem;
 }
 
-.centered-card {
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
+/* Theme Section */
+.theme-section {
+    margin: 2rem 0;
 }
 
-button svg {
-    margin-right: 0.25rem;
+.theme-section h4 {
+    font-size: 0.9rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+
+.theme-toggles {
+    display: inline-flex;
+    background: var(--pico-card-sectionning-background-color);
+    /* Pico doesn't standardly have this var, using fallback or muted background */
+    background: var(--pico-code-background-color);
+    padding: 0.25rem;
+    border-radius: 99px;
+    gap: 0.25rem;
+}
+
+.theme-toggles button {
+    border: none;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    background: transparent;
+    color: var(--pico-muted-color);
+}
+
+.theme-toggles button:not(.outline) {
+    background: var(--pico-card-background-color);
+    color: var(--pico-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+.footer-actions {
+    margin-top: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .profile-card {
+        padding: 1.5rem;
+    }
+
+    .avatar-wrapper {
+        width: 100px;
+        height: 100px;
+    }
 }
 </style>
