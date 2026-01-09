@@ -3,14 +3,14 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import VideoCard from '@/components/video/VideoCard.vue';
 import Loader from '@/components/layout/Loader.vue';
-import { videoService } from '@/services/videoService';
+import { getSubscribedVideos } from '@/services/video.service';
 
 const isLoading = ref(true);
 const videos = ref([]);
 
 onMounted(async () => {
     try {
-        const response = await videoService.getSubscriptions();
+        const response = await getSubscribedVideos();
         videos.value = response.data.data;
     } catch (error) {
         console.error("Failed to fetch subscriptions:", error);

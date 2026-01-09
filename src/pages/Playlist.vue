@@ -3,14 +3,14 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import Loader from '@/components/layout/Loader.vue';
 import { ListVideo } from 'lucide-vue-next';
-import { playlistService } from '@/services/playlistService';
+import { getMyPlaylists } from '@/services/playlist.service';
 
 const isLoading = ref(true);
 const playlists = ref([]);
 
 onMounted(async () => {
     try {
-        const response = await playlistService.getMyPlaylists();
+        const response = await getMyPlaylists();
         playlists.value = response.data.data;
     } catch (error) {
         console.error("Failed to fetch playlists:", error);

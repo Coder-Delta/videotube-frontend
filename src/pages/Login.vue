@@ -76,8 +76,21 @@ const handleLogin = () => {
 
 <style scoped>
 main {
-  max-width: 600px;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - 140px);
+  /* Account for nav/footer approx height */
+  padding: 2rem 1rem;
+}
+
+article {
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
 }
 </style>

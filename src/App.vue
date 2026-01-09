@@ -1,5 +1,5 @@
 <script setup>
-  
+
 </script>
 
 <template>
@@ -21,6 +21,7 @@
 
 .main-content {
   flex: 1;
-  padding: 16px;
+  padding: 0;
+  /* Let child components handle their own padding */
 }
 </style>

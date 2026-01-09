@@ -36,21 +36,25 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
     cursor: pointer;
     text-decoration: none;
     color: inherit;
-    transition: opacity 0.2s;
+    transition: transform 0.2s, background-color 0.2s;
+    border-radius: 8px;
+    padding: 0.5rem;
 }
 
 .suggestion-card:hover {
-    opacity: 0.8;
+    background-color: var(--pico-card-background-color);
+    transform: translateX(4px);
 }
 
 .thumbnail {
     width: 168px;
     /* Standard YouTube sidebar width approx */
     height: 94px;
-    background-color: var(--pico-muted-border-color);
+    background: linear-gradient(135deg, var(--pico-secondary-background) 0%, var(--pico-muted-border-color) 100%);
     border-radius: 8px;
     position: relative;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .duration {

@@ -3,14 +3,14 @@ import { ref, onMounted } from 'vue';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import VideoCard from '@/components/video/VideoCard.vue';
 import Loader from '@/components/layout/Loader.vue';
-import { videoService } from '@/services/videoService';
+import { getTrendingVideos } from '@/services/video.service';
 
 const isLoading = ref(true);
 const videos = ref([]);
 
 onMounted(async () => {
     try {
-        const response = await videoService.getTrending();
+        const response = await getTrendingVideos();
         videos.value = response.data.data; // Assuming standard API response structure
     } catch (error) {
         console.error("Failed to fetch trending videos:", error);

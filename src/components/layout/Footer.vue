@@ -1,4 +1,5 @@
 <script setup>
+import { Twitter, Youtube, Instagram } from 'lucide-vue-next';
 const year = new Date().getFullYear();
 </script>
 
