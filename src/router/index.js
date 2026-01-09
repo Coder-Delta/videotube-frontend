@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory,useRouter } from "vue-router";
 
 // pages (using @ alias)
 import Home from "@/pages/Home.vue";
@@ -6,6 +6,10 @@ import Watch from "@/pages/Watch.vue";
 import Login from "@/pages/Login.vue";
 import Register from "@/pages/Register.vue";
 import Channel from "@/pages/Channel.vue";
+
+const route = useRouter();
+
+const goLogin = () => route.push({ name: "Login" });
 
 const routes = [
   {
