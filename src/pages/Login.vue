@@ -7,14 +7,17 @@ import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/layout/Loader.vue";
 
+import authService from "@/services/auth.service.js";
+
 const router = useRouter();
 
 const email = ref("");
+const username = ref("");
 const password = ref("");
 const error = ref("");
 const isLoading = ref(false);
 
-const handleLogin = () => {
+const handleLogin = async () => {
   error.value = "";
   if (!email.value || !password.value) {
     error.value = "Please enter both email and password";
@@ -22,13 +25,35 @@ const handleLogin = () => {
   }
 
   isLoading.value = true;
-  setTimeout(() => {
-    isLoading.value = false;
-    localStorage.setItem('user', JSON.stringify({ name: 'John Doe', email: email.value }));
-    // Dispatch event so other components (like Navbar) can react immediately
+  try {
+    const response = await authService.loggedInUser({
+      email: email.value,
+      username: username.value,
+      password: password.value
+    });
+
+    // Assuming response contains user data and accessToken
+    // Adjust based on actual API response structure
+    // Extract data from the nested 'data' object in the API response
+    const { accessToken, loggedInUser } = response.data;
+
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken);
+      document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Strict`;
+    }
+
+    if (loggedInUser) {
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+    }
+
     window.dispatchEvent(new Event('storage'));
     router.push("/");
-  }, 1500);
+  } catch (err) {
+    console.error(err);
+    error.value = err.message || "Login failed. Please check your credentials.";
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 

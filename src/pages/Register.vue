@@ -1,22 +1,39 @@
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/layout/Loader.vue";
 // Note: You might need to install lucide-vue-next for the icons
 import { User, Mail, Lock, UserPlus } from 'lucide-vue-next';
+import authService from "@/services/auth.service.js";
+
+const router = useRouter();
 
 const name = ref("");
+const username = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
+const avatar = ref(null);
+const coverImage = ref(null);
 
 const isLoading = ref(false);
 const error = ref("");
 
-const handleRegister = () => {
+const onAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) avatar.value = file;
+};
+
+const onCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) coverImage.value = file;
+};
+
+const handleRegister = async () => {
     error.value = "";
-    if (!name.value || !email.value || !password.value || !confirmPassword.value) {
+    if (!name.value || !username.value || !email.value || !password.value || !confirmPassword.value) {
         error.value = "All fields are required";
         return;
     }
@@ -24,11 +41,27 @@ const handleRegister = () => {
         error.value = "Passwords do not match";
         return;
     }
+
     isLoading.value = true;
-    setTimeout(() => {
+    try {
+        const formData = new FormData();
+        formData.append("fullName", name.value);
+        formData.append("username", username.value);
+        formData.append("email", email.value);
+        formData.append("password", password.value);
+
+        if (avatar.value) formData.append("avatar", avatar.value);
+        if (coverImage.value) formData.append("coverImage", coverImage.value);
+
+        await authService.registerUser(formData);
+        // On success, redirect to login page
+        router.push("/login"); // Or maybe auto-login if the API supports receiving a token on register
+    } catch (err) {
+        console.error(err);
+        error.value = err.message || "Registration failed. Please try again.";
+    } finally {
         isLoading.value = false;
-        console.log("Register data:", { name: name.value, email: email.value });
-    }, 1500);
+    }
 };
 </script>
 
@@ -54,8 +87,23 @@ const handleRegister = () => {
                     </label>
 
                     <label>
+                        Username
+                        <input type="text" placeholder="johndoe123" v-model="username" required />
+                    </label>
+
+                    <label>
                         Email Address
                         <input type="email" placeholder="name@example.com" v-model="email" required />
+                    </label>
+
+                    <label class="file-label">
+                        Avatar (Optional)
+                        <input type="file" @change="onAvatarChange" accept="image/*" />
+                    </label>
+
+                    <label class="file-label">
+                        Cover Image (Optional)
+                        <input type="file" @change="onCoverImageChange" accept="image/*" />
                     </label>
 
                     <label>

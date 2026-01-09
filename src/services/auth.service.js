@@ -3,7 +3,13 @@ import createFormData from "@/utils/fromData.js";
 
 const registerUser = async (userData) => {
     try {
-        const response = await api.post('/users/register', userData);
+        // userData can be JSON or FormData. If it's FormData, let axios handle headers or set explicitly if needed.
+        // But to be consistent with other file uploads:
+        const config = {};
+        if (userData instanceof FormData) {
+            config.headers = { "Content-Type": "multipart/form-data" };
+        }
+        const response = await api.post('/users/register', userData, config);
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: "Something went wrong" };
