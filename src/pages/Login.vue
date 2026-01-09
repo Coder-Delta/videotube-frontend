@@ -5,7 +5,7 @@ import { Mail, Lock, LogIn, AlertCircle } from "lucide-vue-next";
 
 import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
-import Loader from "@/components/common/Loader.vue";
+import Loader from "@/components/layout/Loader.vue";
 
 const router = useRouter();
 
@@ -24,6 +24,9 @@ const handleLogin = () => {
   isLoading.value = true;
   setTimeout(() => {
     isLoading.value = false;
+    localStorage.setItem('user', JSON.stringify({ name: 'John Doe', email: email.value }));
+    // Dispatch event so other components (like Navbar) can react immediately
+    window.dispatchEvent(new Event('storage'));
     router.push("/");
   }, 1500);
 };

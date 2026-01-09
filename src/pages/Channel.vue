@@ -6,7 +6,7 @@ import { CheckCircle2, Bell, Share2 } from "lucide-vue-next";
 import Navbar from "@/components/layout/Navbar.vue";
 import Sidebar from "@/components/layout/Sidebar.vue";
 import Footer from "@/components/layout/Footer.vue";
-import Loader from "@/components/common/Loader.vue";
+import Loader from "@/components/layout/Loader.vue";
 import VideoCard from "@/components/video/VideoCard.vue";
 
 const route = useRoute();

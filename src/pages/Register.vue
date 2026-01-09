@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
-import Loader from "@/components/common/Loader.vue";
+import Loader from "@/components/layout/Loader.vue";
 // Note: You might need to install lucide-vue-next for the icons
 import { User, Mail, Lock, UserPlus } from 'lucide-vue-next';
 

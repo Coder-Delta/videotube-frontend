@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import BaseLayout from "@/components/layout/BaseLayout.vue";
-import Loader from "@/components/common/Loader.vue";
+import Loader from "@/components/layout/Loader.vue";
 import VideoPlayer from "@/components/video/VideoPlayer.vue";
 import VideoDescription from "@/components/video/VideoDescription.vue";
 import Comments from "@/components/video/Comments.vue";
