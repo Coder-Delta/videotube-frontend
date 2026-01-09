@@ -13,7 +13,7 @@ const route = useRoute();
 const isLoading = ref(true);
 
 const channel = ref({
-  name: route.params.username || "Videotube Creative",
+  name: route.params.username || "Cholochitro.exe Creative",
   subscribers: "124K",
   description: "Visual storytelling through high-fidelity digital experiences. Join our journey in crafting the future of the web.",
   videosCount: "142 videos"
@@ -49,7 +49,7 @@ onMounted(() => {
       <main class="channel-view">
         <header class="channel-hero">
           <div class="banner-gradient"></div>
-          
+
           <div class="header-content">
             <div class="avatar-glow">
               <div class="avatar-large">{{ channel.name.charAt(0) }}</div>
@@ -60,7 +60,7 @@ onMounted(() => {
                 <h1 class="channel-name">{{ channel.name }}</h1>
                 <CheckCircle2 :size="20" class="verified-icon" />
               </div>
-              
+
               <div class="meta-row">
                 <span class="meta-bold">@{{ channel.name.toLowerCase().replace(/\s/g, '') }}</span>
                 <span class="dot"></span>
@@ -68,15 +68,19 @@ onMounted(() => {
                 <span class="dot"></span>
                 <span>{{ channel.videosCount }}</span>
               </div>
-              
+
               <p class="channel-desc">{{ channel.description }}</p>
             </div>
 
             <div class="action-stack">
               <button class="btn-subscribe">Subscribe</button>
               <div class="btn-group-row">
-                <button class="btn-icon-outline"><Bell :size="18" /></button>
-                <button class="btn-icon-outline"><Share2 :size="18" /></button>
+                <button class="btn-icon-outline">
+                  <Bell :size="18" />
+                </button>
+                <button class="btn-icon-outline">
+                  <Share2 :size="18" />
+                </button>
               </div>
             </div>
           </div>
@@ -91,20 +95,10 @@ onMounted(() => {
         </nav>
 
         <section class="video-grid">
-          <div 
-            v-for="(video, index) in videos" 
-            :key="video.id"
-            class="grid-animation-wrapper"
-            :style="{ '--delay': `${index * 0.05}s` }"
-          >
-            <VideoCard
-              :id="video.id"
-              :title="video.title"
-              :channel="video.channel"
-              :views="video.views"
-              :time="video.time"
-              :duration="video.duration"
-            />
+          <div v-for="(video, index) in videos" :key="video.id" class="grid-animation-wrapper"
+            :style="{ '--delay': `${index * 0.05}s` }">
+            <VideoCard :id="video.id" :title="video.title" :channel="video.channel" :views="video.views"
+              :time="video.time" :duration="video.duration" />
           </div>
         </section>
 
@@ -131,7 +125,7 @@ onMounted(() => {
   flex: 1;
   padding: 0 40px 40px 40px;
   /* Adjust based on Sidebar width */
-  margin-left: 0; 
+  margin-left: 0;
   transition: all 0.4s ease;
 }
 
@@ -144,7 +138,9 @@ onMounted(() => {
 
 .banner-gradient {
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 180px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-radius: 0 0 24px 24px;
@@ -332,13 +328,30 @@ onMounted(() => {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
-  .header-content { flex-direction: column; align-items: center; text-align: center; }
-  .action-stack { width: 100%; }
-  .channel-view { padding: 20px; }
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .action-stack {
+    width: 100%;
+  }
+
+  .channel-view {
+    padding: 20px;
+  }
 }
 </style>

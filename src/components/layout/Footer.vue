@@ -5,7 +5,7 @@ const year = new Date().getFullYear();
 <template>
   <footer class="container-fluid">
     <div class="footer-minimal">
-      <small>© {{ year }} VideoTube Inc.</small>
+      <small>© {{ year }} Cholochitro.exe Inc.</small>
 
       <nav class="footer-links">
         <a href="#" class="secondary">Terms</a>

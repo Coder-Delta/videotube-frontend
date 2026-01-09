@@ -11,7 +11,7 @@ const navLinks = [
   <nav class="container-fluid">
     <!-- Left: Brand + Nav -->
     <ul>
-      <li><strong>VideoTube</strong></li>
+      <li><strong class="brand-logo">Cholochitro.exe</strong></li>
       <li v-for="(link, i) in navLinks" :key="i" class="hidden-mobile">
         <a href="#" class="secondary">{{ link.label }}</a>
       </li>
@@ -35,6 +35,11 @@ const navLinks = [
 <style scoped>
 nav {
   border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.brand-logo {
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
 }
 
 .search-input {
