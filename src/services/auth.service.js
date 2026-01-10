@@ -71,13 +71,13 @@ const updateUserProfile = async (userData) => {
         throw error.response?.data || { message: "Something went wrong" };
     }
 };
-const updateAvatar = async (username, avatarFile) => {
+const updateAvatar = async (avatarFile) => {
     try {
         const formData = new createFormData({
             avatar: avatarFile,
         });
         const { data } = await api.patch(
-            `/users/a/${username}`,
+            `/users/avatar`,
             formData
         );
         return data;
@@ -89,14 +89,14 @@ const updateAvatar = async (username, avatarFile) => {
     }
 };
 
-const updateCoverPhoto = async (username, coverPhotoFile) => {
+const updateCoverPhoto = async (coverPhotoFile) => {
     try {
         const formData = new createFormData({
-            coverPhoto: coverPhotoFile,
+            coverImage: coverPhotoFile,
         });
 
         const { data } = await api.patch(
-            `/users/c/${username}`,
+            `/users/cover-image`,
             formData
         );
 
@@ -129,6 +129,15 @@ const watchHistory = async (historyData) => {
     }
 };
 
+const deleteAccount = async () => {
+    try {
+        const response = await api.delete('/users/del-acc');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: "Something went wrong" };
+    }
+};
+
 export default {
     registerUser,
     loggedInUser,
@@ -140,5 +149,6 @@ export default {
     updateAvatar,
     updateCoverPhoto,
     getUserChannelProfile,
-    watchHistory
+    watchHistory,
+    deleteAccount
 };

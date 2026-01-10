@@ -20,17 +20,21 @@ const isLoading = ref(false);
 const handleLogin = async () => {
   error.value = "";
   if (!email.value || !password.value) {
-    error.value = "Please enter both email and password";
+    error.value = "Please enter username or email and password";
     return;
   }
 
   isLoading.value = true;
+  isLoading.value = true;
   try {
-    const response = await authService.loggedInUser({
-      email: email.value,
-      username: username.value,
-      password: password.value
-    });
+    const payload = { password: password.value };
+    if (email.value.includes('@')) {
+      payload.email = email.value;
+    } else {
+      payload.username = email.value;
+    }
+
+    const response = await authService.loggedInUser(payload);
 
     // Assuming response contains user data and accessToken
     // Adjust based on actual API response structure
@@ -74,8 +78,8 @@ const handleLogin = async () => {
 
         <form @submit.prevent="handleLogin">
           <label>
-            Email Address
-            <input type="email" placeholder="name@example.com" v-model="email" required />
+            Username or Email
+            <input type="text" placeholder="Username or name@example.com" v-model="email" required />
           </label>
 
           <label>

@@ -11,6 +11,7 @@ import Trending from "@/pages/Trending.vue";
 import Subscriptions from "@/pages/Subscriptions.vue";
 import Playlist from "@/pages/Playlist.vue";
 import Profile from "@/pages/Profile.vue";
+import Settings from "@/pages/Settings.vue";
 
 const route = useRouter();
 
@@ -41,6 +42,11 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: Profile,
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: Settings,
   },
   {
     path: "/watch/:id",

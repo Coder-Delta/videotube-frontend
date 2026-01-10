@@ -2,28 +2,59 @@
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
-import { User, LogOut, Edit3, Save, Moon, Sun, Monitor } from 'lucide-vue-next';
+import { User, LogOut, Edit3, Save, Moon, Sun, Monitor, Camera, Image as ImageIcon } from 'lucide-vue-next';
+import authService from '@/services/auth.service';
 
 const router = useRouter();
 const currentUser = ref(null);
 const isEditing = ref(false);
 const currentTheme = ref('auto');
 
-const editForm = reactive({ name: '', bio: '' });
+const editForm = reactive({ name: '', email: '' });
 
 onMounted(() => {
     // Load User
     const user = localStorage.getItem('user');
     if (user) {
         currentUser.value = JSON.parse(user);
-        editForm.name = currentUser.value.fullName || currentUser.value.name; // Handle potentially different naming
-        editForm.bio = currentUser.value.bio || 'Digital Creator';
+        editForm.name = currentUser.value.fullName || currentUser.value.name;
+        editForm.email = currentUser.value.email || '';
+        // Ensure coverImage exists in ref if not in storage, for UI consistency
+        // Ensure coverImage exists in ref if not in storage, for UI consistency
+        if (!currentUser.value.coverImage) currentUser.value.coverImage = '';
     }
 
     // Load Theme
     const savedTheme = localStorage.getItem('pico_theme') || 'auto';
     setTheme(savedTheme);
 });
+
+// File Refs
+const avatarInput = ref(null);
+const coverInput = ref(null);
+const tempAvatar = ref(null);
+const tempCover = ref(null);
+const selectedAvatarFile = ref(null);
+const selectedCoverFile = ref(null);
+
+const triggerAvatarUpload = () => avatarInput.value.click();
+const triggerCoverUpload = () => coverInput.value.click();
+
+const onAvatarChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedAvatarFile.value = file;
+        tempAvatar.value = URL.createObjectURL(file);
+    }
+};
+
+const onCoverChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedCoverFile.value = file;
+        tempCover.value = URL.createObjectURL(file);
+    }
+};
 
 const formatDate = (dateString) => {
     if (!dateString) return 'Member since forever';
@@ -45,21 +76,53 @@ const setTheme = (theme) => {
 const toggleEdit = () => {
     if (!isEditing.value) {
         editForm.name = currentUser.value.fullName || currentUser.value.name;
-        editForm.bio = currentUser.value.bio || 'Digital Creator';
+        editForm.email = currentUser.value.email;
     }
     isEditing.value = !isEditing.value;
 };
 
-const saveProfile = () => {
+const saveProfile = async () => {
     if (currentUser.value) {
-        currentUser.value.fullName = editForm.name; // Standardize on fullName
-        currentUser.value.name = editForm.name; // Keep name for compat
-        currentUser.value.bio = editForm.bio;
+        try {
+            // Update Text Info
+            const updatedUser = { ...currentUser.value, fullName: editForm.name, email: editForm.email };
+            // Call API to update text details 
+            await authService.updateUserProfile({
+                fullName: editForm.name,
+                email: editForm.email
+            });
+            // Update local state
+            currentUser.value.fullName = editForm.name;
+            currentUser.value.name = editForm.name;
+            currentUser.value.email = editForm.email;
 
-        localStorage.setItem('user', JSON.stringify(currentUser.value));
-        isEditing.value = false;
-        // Trigger generic storage event if other tabs need update
-        window.dispatchEvent(new Event('storage'));
+            // Update Avatar if changed
+            if (selectedAvatarFile.value) {
+                const res = await authService.updateAvatar(selectedAvatarFile.value);
+                currentUser.value.avatar = res.data.avatar; // Access nested data if needed
+            }
+
+            // Update Cover if changed
+            if (selectedCoverFile.value) {
+                const res = await authService.updateCoverPhoto(selectedCoverFile.value);
+                currentUser.value.coverImage = res.data.coverImage;
+            }
+
+            // Persist
+            localStorage.setItem('user', JSON.stringify(currentUser.value));
+            isEditing.value = false;
+
+            // Clean up temps
+            tempAvatar.value = null;
+            tempCover.value = null;
+            selectedAvatarFile.value = null;
+            selectedCoverFile.value = null;
+
+            window.dispatchEvent(new Event('storage'));
+        } catch (error) {
+            console.error("Failed to save profile:", error);
+            alert("Failed to save profile changes.");
+        }
     }
 };
 
@@ -81,73 +144,104 @@ const logout = () => {
         <div class="container profile-container">
             <div v-if="currentUser" class="profile-card">
 
-                <!-- Avatar Section -->
-                <div class="profile-header">
-                    <div class="avatar-wrapper">
-                        <img v-if="currentUser.avatar" :src="currentUser.avatar" alt="Avatar" />
-                        <div v-else class="avatar-placeholder">{{ (currentUser.name || 'U').charAt(0) }}</div>
-                    </div>
-                </div>
+                <!-- Cover Image -->
+                <div class="profile-cover">
+                    <!-- Display temp cover if selected, else current -->
+                    <img v-if="tempCover" :src="tempCover" alt="Cover Preview" />
+                    <img v-else-if="currentUser.coverImage" :src="currentUser.coverImage" alt="Cover" />
+                    <div v-else class="cover-placeholder"></div>
 
-                <!-- Info Section -->
-                <div class="profile-body">
-                    <div v-if="!isEditing" class="info-view">
-                        <h1>{{ currentUser.fullName || currentUser.name }}</h1>
-                        <p class="username">@{{ currentUser.username }}</p>
-                        <p class="bio">{{ currentUser.bio || 'Digital Creator' }}</p>
-                        <small class="joined-date">{{ formatDate(currentUser.createdAt) }}</small>
-                    </div>
-
-                    <div v-else class="info-edit">
-                        <label>Full Name
-                            <input v-model="editForm.name" type="text" />
-                        </label>
-                        <label>Bio
-                            <input v-model="editForm.bio" type="text" />
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="profile-actions">
-                    <button v-if="!isEditing" @click="toggleEdit" class="secondary outline btn-sm">
-                        <Edit3 size="16" /> Edit Profile
-                    </button>
-                    <div v-else class="edit-buttons">
-                        <button @click="saveProfile" class="btn-sm">Save</button>
-                        <button @click="toggleEdit" class="secondary outline btn-sm">Cancel</button>
-                    </div>
-
-                    <button @click="goToChannel" class="outline btn-sm">View Channel</button>
-                </div>
-
-                <hr />
-
-                <!-- Theme Switcher -->
-                <div class="theme-section">
-                    <h4>Appearance</h4>
-                    <div class="theme-toggles">
-                        <button @click="setTheme('light')" :class="{ outline: currentTheme !== 'light' }"
-                            aria-label="Light Mode">
-                            <Sun size="18" />
-                        </button>
-                        <button @click="setTheme('dark')" :class="{ outline: currentTheme !== 'dark' }"
-                            aria-label="Dark Mode">
-                            <Moon size="18" />
-                        </button>
-                        <button @click="setTheme('auto')" :class="{ outline: currentTheme !== 'auto' }"
-                            aria-label="Auto System">
-                            <Monitor size="18" />
+                    <div v-if="isEditing" class="cover-edit-overlay">
+                        <button @click="triggerCoverUpload" class="secondary outline btn-sm cover-btn">
+                            <ImageIcon size="16" /> Change Cover
                         </button>
                     </div>
                 </div>
 
-                <div class="footer-actions">
-                    <button @click="logout" class="contrast outline btn-sm">
-                        <LogOut size="16" /> Sign Out
-                    </button>
-                </div>
+                <div class="profile-content">
+                    <!-- Avatar Section -->
+                    <div class="profile-header">
+                        <div class="avatar-wrapper">
+                            <img v-if="tempAvatar" :src="tempAvatar" alt="Avatar Preview" />
+                            <img v-else-if="currentUser.avatar" :src="currentUser.avatar" alt="Avatar" />
+                            <div v-else class="avatar-placeholder">{{ (currentUser.name || 'U').charAt(0) }}</div>
 
+                            <div v-if="isEditing" class="avatar-edit-overlay" @click="triggerAvatarUpload">
+                                <Camera size="24" />
+                            </div>
+                        </div>
+                        <div v-if="isEditing" class="avatar-c-btn">
+                            <button @click="triggerAvatarUpload" class="secondary outline btn-sm">
+                                <Camera size="16" /> Change Avatar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info Section -->
+                    <div class="profile-body">
+                        <div v-if="!isEditing" class="info-view">
+                            <h1>{{ currentUser.fullName || currentUser.name }}</h1>
+                            <p class="username">@{{ currentUser.username }}</p>
+                            <p class="bio">{{ currentUser.bio || 'Digital Creator' }}</p>
+                            <small class="joined-date">{{ formatDate(currentUser.createdAt) }}</small>
+                        </div>
+
+                        <div v-else class="info-edit">
+                            <label>Full Name
+                                <input v-model="editForm.name" type="text" />
+                            </label>
+                            <label>Email
+                                <input v-model="editForm.email" type="email" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="profile-actions">
+                        <button v-if="!isEditing" @click="toggleEdit" class="secondary outline btn-sm">
+                            <Edit3 size="16" /> Edit Profile
+                        </button>
+                        <div v-else class="edit-buttons">
+                            <button @click="saveProfile" class="btn-sm">Save</button>
+                            <button @click="toggleEdit" class="secondary outline btn-sm">Cancel</button>
+                        </div>
+
+                        <button @click="goToChannel" class="outline btn-sm">View Channel</button>
+                    </div>
+
+                    <hr />
+
+                    <!-- Theme Switcher -->
+                    <div class="theme-section">
+                        <h4>Appearance</h4>
+                        <div class="theme-toggles">
+                            <button @click="setTheme('light')" :class="{ outline: currentTheme !== 'light' }"
+                                aria-label="Light Mode">
+                                <Sun size="18" />
+                            </button>
+                            <button @click="setTheme('dark')" :class="{ outline: currentTheme !== 'dark' }"
+                                aria-label="Dark Mode">
+                                <Moon size="18" />
+                            </button>
+                            <button @click="setTheme('auto')" :class="{ outline: currentTheme !== 'auto' }"
+                                aria-label="Auto System">
+                                <Monitor size="18" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Inputs -->
+                    <input type="file" ref="avatarInput" accept="image/*" style="display:none"
+                        @change="onAvatarChange" />
+                    <input type="file" ref="coverInput" accept="image/*" style="display:none" @change="onCoverChange" />
+
+                    <div class="footer-actions">
+                        <button @click="logout" class="contrast outline btn-sm">
+                            <LogOut size="16" /> Sign Out
+                        </button>
+                    </div>
+
+                </div>
             </div>
 
             <!-- Login Prompt -->
@@ -171,24 +265,103 @@ const logout = () => {
 
 .profile-card {
     background: var(--pico-card-background-color);
-    padding: 2.5rem;
+    padding: 0;
+    /* Remove default padding to let cover be full width */
     border-radius: 20px;
     border: 1px solid var(--pico-muted-border-color);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    /* Subtle shadow */
     text-align: center;
+    overflow: hidden;
+    /* For cover image corners */
+}
+
+.profile-content {
+    padding: 0 2.5rem 2.5rem;
+    /* Add padding here instead */
+    position: relative;
+    margin-top: -60px;
+    /* Pull content up to overlap cover */
+}
+
+/* Cover Image */
+.profile-cover {
+    width: 100%;
+    height: 150px;
+    background: var(--pico-muted-border-color);
+    position: relative;
+}
+
+.profile-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--pico-primary) 0%, var(--pico-secondary-background) 100%);
+    opacity: 0.3;
 }
 
 /* Avatar */
 .avatar-wrapper {
     width: 120px;
     height: 120px;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto 0.5rem;
+    /* Reduced bottom margin */
     border-radius: 50%;
     overflow: hidden;
     background: var(--pico-secondary-background);
-    border: 4px solid var(--pico-background-color);
+    border: 4px solid var(--pico-card-background-color);
+    /* Match card bg */
     box-shadow: 0 0 0 1px var(--pico-muted-border-color);
+    position: relative;
+}
+
+.avatar-edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.avatar-wrapper:hover .avatar-edit-overlay {
+    opacity: 1;
+}
+
+.avatar-c-btn {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.cover-edit-overlay {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 10;
+}
+
+.cover-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cover-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-color: white;
 }
 
 .avatar-wrapper img {

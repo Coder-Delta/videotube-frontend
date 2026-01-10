@@ -97,7 +97,7 @@ const handleRegister = async () => {
                     </label>
 
                     <label class="file-label">
-                        Avatar (Optional)
+                        Avatar
                         <input type="file" @change="onAvatarChange" accept="image/*" />
                     </label>
 

@@ -135,9 +135,9 @@ const logout = () => {
             <router-link to="/profile" class="dropdown-item" @click="closeDropdown">
               <UserCircle size="18" /> Profile
             </router-link>
-            <a href="#" class="dropdown-item" @click="closeDropdown">
+            <router-link to="/settings" class="dropdown-item" @click="closeDropdown">
               <Settings size="18" /> Settings
-            </a>
+            </router-link>
           </nav>
 
           <div class="dropdown-divider"></div>
