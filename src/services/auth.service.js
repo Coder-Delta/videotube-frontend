@@ -63,50 +63,33 @@ const getCurrentUser = async () => {
     }
 };
 
-const updateUserProfile = async (userData) => {
+const updateUserProfile = async (data) => {
     try {
-        const response = await api.patch('/users/update-account', userData);
-        return response.data;
+        const config = {};
+
+        // Axios auto-handles multipart boundaries
+        if (data instanceof FormData) {
+            config.headers = { "Content-Type": "multipart/form-data" };
+        }
+
+        const { data: responseData } = await api.patch(
+            "/users/update-account",
+            data,
+            config
+        );
+
+        return responseData;
     } catch (error) {
-        throw error.response?.data || { message: "Something went wrong" };
-    }
-};
-const updateAvatar = async (avatarFile) => {
-    try {
-        const formData = new createFormData({
-            avatar: avatarFile,
-        });
-        const { data } = await api.patch(
-            `/users/avatar`,
-            formData
-        );
-        return data;
-    }
-    catch (error) {
-        throw new Error(
-            error.response?.data?.message || "Avatar update failed"
-        );
+        // Always throw Error instance
+        const message =
+            error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong";
+
+        throw new Error(message);
     }
 };
 
-const updateCoverPhoto = async (coverPhotoFile) => {
-    try {
-        const formData = new createFormData({
-            coverImage: coverPhotoFile,
-        });
-
-        const { data } = await api.patch(
-            `/users/cover-image`,
-            formData
-        );
-
-        return data;
-    } catch (error) {
-        throw new Error(
-            error.response?.data?.message || "Cover photo update failed"
-        );
-    }
-};
 
 
 const getUserChannelProfile = async (username) => {
@@ -146,8 +129,6 @@ export default {
     resetPassword,
     getCurrentUser,
     updateUserProfile,
-    updateAvatar,
-    updateCoverPhoto,
     getUserChannelProfile,
     watchHistory,
     deleteAccount

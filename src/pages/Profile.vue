@@ -82,49 +82,115 @@ const toggleEdit = () => {
 };
 
 const saveProfile = async () => {
-    if (currentUser.value) {
-        try {
-            // Update Text Info
-            const updatedUser = { ...currentUser.value, fullName: editForm.name, email: editForm.email };
-            // Call API to update text details 
-            await authService.updateUserProfile({
-                fullName: editForm.name,
-                email: editForm.email
-            });
-            // Update local state
-            currentUser.value.fullName = editForm.name;
-            currentUser.value.name = editForm.name;
-            currentUser.value.email = editForm.email;
+  console.group("🧩 saveProfile START");
 
-            // Update Avatar if changed
-            if (selectedAvatarFile.value) {
-                const res = await authService.updateAvatar(selectedAvatarFile.value);
-                currentUser.value.avatar = res.data.avatar; // Access nested data if needed
-            }
-
-            // Update Cover if changed
-            if (selectedCoverFile.value) {
-                const res = await authService.updateCoverPhoto(selectedCoverFile.value);
-                currentUser.value.coverImage = res.data.coverImage;
-            }
-
-            // Persist
-            localStorage.setItem('user', JSON.stringify(currentUser.value));
-            isEditing.value = false;
-
-            // Clean up temps
-            tempAvatar.value = null;
-            tempCover.value = null;
-            selectedAvatarFile.value = null;
-            selectedCoverFile.value = null;
-
-            window.dispatchEvent(new Event('storage'));
-        } catch (error) {
-            console.error("Failed to save profile:", error);
-            alert("Failed to save profile changes.");
-        }
+  try {
+    if (!currentUser?.value) {
+      console.error("❌ currentUser missing");
+      return;
     }
+
+    // 🔐 Required fields
+    if (!editForm.name?.trim() || !editForm.email?.trim()) {
+      alert("Name and email are required");
+      return;
+    }
+
+    // 🔍 Check changes
+    const isTextChanged =
+      editForm.name !== currentUser.value.fullName ||
+      editForm.email !== currentUser.value.email;
+
+    const hasAvatar = !!selectedAvatarFile?.value;
+    const hasCover = !!selectedCoverFile?.value;
+
+    if (!isTextChanged && !hasAvatar && !hasCover) {
+      console.log("⚠️ Nothing changed");
+      return;
+    }
+
+    // 📦 Build FormData
+    const formData = new FormData();
+
+    if (isTextChanged) {
+      formData.append("fullName", editForm.name);
+      formData.append("email", editForm.email);
+    }
+
+    // 🖼 Avatar validation
+    if (hasAvatar) {
+      const file = selectedAvatarFile.value;
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Avatar must be an image");
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error("Avatar exceeds 2MB");
+      }
+
+      formData.append("avatar", file);
+    }
+
+    // 🖼 Cover validation
+    if (hasCover) {
+      const file = selectedCoverFile.value;
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Cover must be an image");
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Cover exceeds 5MB");
+      }
+
+      formData.append("coverImage", file);
+    }
+
+    console.log("📡 Sending merged update request...");
+
+    const response = await authService.updateUserProfile(formData);
+
+    // ✅ Backend response shape
+    if (!response?.data) {
+      throw new Error("Invalid server response");
+    }
+
+    const updatedUser = response.data;
+
+    // 🔄 Sync state
+    currentUser.value = {
+      ...currentUser.value,
+      ...updatedUser,
+    };
+
+    // 💾 Persist
+    localStorage.setItem("user", JSON.stringify(currentUser.value));
+
+    // 🧹 Cleanup
+    isEditing.value = false;
+    tempAvatar.value = null;
+    tempCover.value = null;
+    selectedAvatarFile.value = null;
+    selectedCoverFile.value = null;
+
+    window.dispatchEvent(new Event("storage"));
+
+    console.log("✅ Profile updated successfully");
+
+  } catch (error) {
+    console.group("🔥 saveProfile ERROR");
+    console.error(error);
+    console.groupEnd();
+
+    alert(error.message || "Profile update failed");
+  } finally {
+    console.groupEnd();
+    console.log("🏁 saveProfile END");
+  }
 };
+
+
 
 const goToChannel = () => {
     if (!currentUser.value) return;
