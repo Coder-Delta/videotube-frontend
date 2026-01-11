@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
+import axios from 'axios';
 import BaseLayout from "@/components/layout/BaseLayout.vue";
 import Loader from "@/components/layout/Loader.vue";
 import VideoPlayer from "@/components/video/VideoPlayer.vue";
@@ -10,63 +11,56 @@ import SuggestionCard from "@/components/video/SuggestionCard.vue";
 
 const route = useRoute();
 const isLoading = ref(true);
+const video = ref(null);
+const error = ref(null);
 
-const video = ref({
-  id: route.params.id,
-  src: "/sample-video.mp4",
-  poster: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=1000",
-  title: "Building Cholochitro.exe with Vue 3 & Modern CSS",
-  views: "24,132 views",
-  date: "2 days ago",
-  description: "Learn how to build a high-performance video streaming platform. We cover everything from architecture to glassmorphism UI.",
-  channel: {
-    name: "Cholochitro.exe",
-    username: "cholochitro",
-    avatar: "",
-    subscribers: "124K"
+const fetchVideoDetails = async (id) => {
+  isLoading.value = true;
+  error.value = null;
+  try {
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    // First, fetch the video details
+    const response = await axios.get(`/api/v1/videos/${id}`, { headers });
+    const videoData = response.data.data || response.data;
+
+    // Use videoFile for src. Assuming backend returns the full Cloudinary URL.
+    video.value = {
+      id: videoData._id,
+      src: videoData.videoFile,
+      poster: videoData.thumbnail,
+      title: videoData.title,
+      views: videoData.views ? `${videoData.views} views` : "0 views",
+      date: new Date(videoData.createdAt).toLocaleDateString(),
+      description: videoData.description,
+      channel: {
+        name: videoData.owner?.username || "Unknown",
+        username: videoData.owner?.username || "unknown",
+        avatar: videoData.owner?.avatar || "",
+        subscribers: "0" // API might not providing this yet
+      }
+    };
+  } catch (err) {
+    console.error("Failed to load video:", err);
+    error.value = "Failed to load video.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  if (route.params.id) {
+    fetchVideoDetails(route.params.id);
   }
 });
 
-const loadVideo = (id) => {
-  isLoading.value = true;
-  // Simulate API fetch delay and data update
-  setTimeout(() => {
-    video.value = {
-      id: id,
-      src: "/sample-video.mp4", // In a real app, this would change based on ID
-      poster: `https://picsum.photos/seed/${id}/1280/720`,
-      title: `Now Playing Video ID: ${id}`,
-      views: `${Math.floor(Math.random() * 500) + 10}K views`,
-      date: "Just now",
-      description: `This is the description for the dynamically loaded video with ID ${id}. It demonstrates route monitoring and state updates.`,
-      channel: {
-        name: "Creator " + id,
-        username: "creator" + id,
-        avatar: `https://picsum.photos/seed/${id}/50/50`,
-        subscribers: `${Math.floor(Math.random() * 100)}K`
-      }
-    };
-    isLoading.value = false;
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 800);
-};
-
-// Initial load
-onMounted(() => {
-  setTimeout(() => {
-    isLoading.value = false;
-  }, 1200);
-});
-
-// Watch for route changes (clicking suggestions)
 watch(
   () => route.params.id,
   (newId) => {
-    if (newId) loadVideo(newId);
+    if (newId) fetchVideoDetails(newId);
   }
 );
-
 const suggestions = ref(
   Array.from({ length: 15 }, (_, i) => ({
     id: i + 101,

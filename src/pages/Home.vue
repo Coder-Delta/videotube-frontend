@@ -1,26 +1,58 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import axios from 'axios';
 import BaseLayout from "@/components/layout/BaseLayout.vue";
 import Loader from "@/components/layout/Loader.vue";
 import VideoCard from "@/components/video/VideoCard.vue";
 
 const isLoading = ref(true);
+const videos = ref([]);
+const error = ref(null);
 
-const videos = ref(
-  Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    title: `Premium Creative Content: Episode ${i + 1}`,
-    channel: "Design Studio",
-    views: `${Math.floor(Math.random() * 100) + 1}K`,
-    time: `${i + 1} hours ago`,
-    duration: `${Math.floor(Math.random() * 10) + 5}:20`
-  }))
-);
+const fetchVideos = async () => {
+  error.value = null;
+  try {
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const response = await axios.get('/api/v1/videos', { headers });
+    console.log("Videos API Response:", response.data);
+
+    let videoList = [];
+    const data = response.data;
+
+    if (Array.isArray(data)) {
+      videoList = data;
+    } else if (data && Array.isArray(data.data)) {
+      videoList = data.data;
+    } else if (data && data.data && Array.isArray(data.data.videos)) {
+      // Specific handling for current API structure
+      videoList = data.data.videos;
+    } else if (data && data.data && Array.isArray(data.data.docs)) {
+      videoList = data.data.docs;
+    } else if (data && Array.isArray(data.docs)) {
+      videoList = data.docs;
+    }
+
+    videos.value = videoList.map(video => ({
+      id: video._id,
+      title: video.title,
+      thumbnail: video.thumbnail,
+      channel: video.owner?.username || "Cholochitro User",
+      views: video.views ? `${video.views} views` : "0 views",
+      time: new Date(video.createdAt).toLocaleDateString(),
+      duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00"
+    }));
+  } catch (err) {
+    console.error("Failed to fetch videos:", err);
+    error.value = "Failed to load videos. Please try again later.";
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 onMounted(() => {
-  setTimeout(() => {
-    isLoading.value = false;
-  }, 1800);
+  fetchVideos();
 });
 </script>
 
@@ -31,16 +63,40 @@ onMounted(() => {
       <h3>Recommended for You</h3>
       <p>Curated videos based on your recent activity</p>
     </hgroup>
-    <div class="grid">
+
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <div v-else-if="videos.length === 0" class="empty-state">
+      <p>No videos found. Check back later or upload one!</p>
+    </div>
+
+    <div v-else class="grid">
       <div v-for="video in videos" :key="video.id">
-        <VideoCard :id="video.id" :title="video.title" :channel="video.channel" :views="video.views" :time="video.time"
-          :duration="video.duration" />
+        <VideoCard :id="video.id" :title="video.title" :thumbnail="video.thumbnail" :channel="video.channel"
+          :views="video.views" :time="video.time" :duration="video.duration" />
       </div>
     </div>
   </BaseLayout>
 </template>
 
 <style scoped>
+.error-message {
+  color: var(--pico-del-color);
+  text-align: center;
+  padding: 2rem;
+  background: rgba(var(--pico-del-color-rgb), 0.1);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--pico-muted-color);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -5,10 +5,11 @@ import { Play, MoreVertical, CheckCircle2 } from "lucide-vue-next";
 const props = defineProps({
   id: { type: [String, Number], required: true },
   title: { type: String, required: true },
+  thumbnail: { type: String, default: "" },
   channel: { type: String, required: true },
-  views: { type: String, default: "1.2M views" },
-  time: { type: String, default: "2 days ago" },
-  duration: { type: String, default: "12:45" }
+  views: { type: [String, Number], default: "0 views" },
+  time: { type: String, default: "Just now" },
+  duration: { type: [String, Number], default: "00:00" }
 });
 
 const router = useRouter();
@@ -18,7 +19,8 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
 <template>
   <article class="video-card" @click="goToWatch">
     <div class="thumbnail-wrapper">
-      <div class="thumbnail-image"></div>
+      <img v-if="thumbnail" :src="thumbnail" :alt="title" class="thumbnail-image" />
+      <div v-else class="thumbnail-placeholder"></div>
       <span class="duration-badge">{{ duration }}</span>
     </div>
 
@@ -62,6 +64,17 @@ article.video-card:hover {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+article.video-card:hover .thumbnail-image {
+  transform: scale(1.05);
 }
 
 /* Optional: Add a play icon overlay on hover if desired, or just keep it clean */
