@@ -14,6 +14,7 @@ const isLoading = ref(true);
 const video = ref(null);
 const error = ref(null);
 
+const suggestions = ref([]);
 const fetchVideoDetails = async (id) => {
   isLoading.value = true;
   error.value = null;
@@ -35,12 +36,36 @@ const fetchVideoDetails = async (id) => {
       date: new Date(videoData.createdAt).toLocaleDateString(),
       description: videoData.description,
       channel: {
-        name: videoData.owner?.username || "Unknown",
+        name: videoData.owner?.fullName || videoData.owner?.username || "Unknown Channel",
         username: videoData.owner?.username || "unknown",
         avatar: videoData.owner?.avatar || "",
-        subscribers: "0" // API might not providing this yet
+        subscribers: "0 Subscribers" // API might not providing this yet
       }
     };
+
+    // Fetch suggestions (all videos)
+    const suggestionsResponse = await axios.get('/api/v1/videos', { headers });
+    // Handle different response structures for suggestions list
+    const sData = suggestionsResponse.data;
+    let allVideos = [];
+    if (Array.isArray(sData)) allVideos = sData;
+    else if (sData.data && Array.isArray(sData.data)) allVideos = sData.data;
+    else if (sData.data && sData.data.videos && Array.isArray(sData.data.videos)) allVideos = sData.data.videos;
+    else if (sData.data && sData.data.docs && Array.isArray(sData.data.docs)) allVideos = sData.data.docs;
+
+    // Filter out current video and map
+    suggestions.value = allVideos
+      .filter(v => v._id !== id)
+      .map(v => ({
+        id: v._id,
+        title: v.title,
+        channel: v.owner?.username || "Cholochitro User",
+        views: v.views ? `${v.views} views` : "0 views",
+        time: new Date(v.createdAt).toLocaleDateString(),
+        duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
+        thumbnail: v.thumbnail
+      }));
+
   } catch (err) {
     console.error("Failed to load video:", err);
     error.value = "Failed to load video.";
@@ -60,13 +85,6 @@ watch(
   (newId) => {
     if (newId) fetchVideoDetails(newId);
   }
-);
-const suggestions = ref(
-  Array.from({ length: 15 }, (_, i) => ({
-    id: i + 101,
-    title: `Next Level Vue 3 Architecture Part ${i + 1}`,
-    channel: "Design Mastery",
-  }))
 );
 </script>
 
@@ -94,7 +112,7 @@ const suggestions = ref(
 
         <div class="suggestions-list">
           <SuggestionCard v-for="item in suggestions" :key="item.id" :id="item.id" :title="item.title"
-            :channel="item.channel" />
+            :thumbnail="item.thumbnail" :channel="item.channel" />
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 const props = defineProps({
     id: { type: [String, Number], required: true },
     title: { type: String, required: true },
+    thumbnail: { type: String, default: "" },
     channel: { type: String, required: true },
     views: { type: String, default: "1.2M views" },
     time: { type: String, default: "2 days ago" },
@@ -17,7 +18,7 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
 <template>
     <div class="suggestion-card" @click="goToWatch">
         <div class="thumbnail">
-            <!-- Placeholder for real image -->
+            <img v-if="thumbnail" :src="thumbnail" :alt="title" class="thumb-img" />
             <span class="duration">{{ duration }}</span>
         </div>
         <div class="info">
