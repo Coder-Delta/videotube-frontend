@@ -9,10 +9,12 @@ const isLoading = ref(true);
 const videos = ref([]);
 const error = ref(null);
 
+import { getAuthData } from "@/utils/cookie";
+
 const fetchVideos = async () => {
   error.value = null;
   try {
-    const token = localStorage.getItem('accessToken');
+    const { token } = getAuthData();
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     const response = await axios.get('/api/v1/videos', { headers });

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { ChevronDown, ChevronUp, Hash } from "lucide-vue-next";
+import { ChevronDown, ChevronUp, Hash, Share2 } from "lucide-vue-next";
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -11,11 +11,27 @@ const props = defineProps({
   channel: {
     type: Object,
     default: () => ({ name: 'Channel Name', avatar: '', subscribers: '0' })
-  }
+  },
+  isOwner: { type: Boolean, default: false },
+  isPublished: { type: Boolean, default: true },
+  isSubscribed: { type: Boolean, default: false },
+  likesCount: { type: Number, default: 0 },
+  isLiked: { type: Boolean, default: false }
 });
+
+const emit = defineEmits(['toggle-publish', 'delete', 'edit', 'save-playlist', 'subscribe', 'like']);
 
 const expanded = ref(false);
 const toggle = () => { expanded.value = !expanded.value; };
+
+const shareVideo = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    alert("Link copied to clipboard!");
+  } catch (err) {
+    console.error("Failed to copy link", err);
+  }
+};
 </script>
 
 <template>
@@ -23,12 +39,6 @@ const toggle = () => { expanded.value = !expanded.value; };
     <!-- Title & Stats -->
     <header class="video-header">
       <h3>{{ title }}</h3>
-      <!-- <div class="meta-row">
-        <small>{{ views }} • {{ date }}</small>
-        <div class="tags">
-          <span v-for="tag in tags" :key="tag"><a href="#" class="secondary">{{ tag }}</a></span>
-        </div>
-      </div> -->
     </header>
 
     <!-- Channel Info Bar -->
@@ -42,16 +52,29 @@ const toggle = () => { expanded.value = !expanded.value; };
           <a :href="`/channel/${channel.username || ''}`" class="channel-name">{{ channel.name }}</a>
           <span class="sub-count">{{ channel.subscribers }} subscribers</span>
         </div>
-        <button class="subscribe-btn-sm">Subscribe</button>
+
+        <div v-if="isOwner" class="owner-actions">
+          <button class="outline secondary sm-btn" @click="$emit('edit')">Edit</button>
+          <button class="outline sm-btn" @click="$emit('toggle-publish')">
+            {{ isPublished ? 'Public' : 'Private' }}
+          </button>
+          <button class="outline contrast sm-btn" @click="$emit('delete')">Delete</button>
+        </div>
+        <button v-else class="subscribe-btn-sm" :class="{ 'outline': isSubscribed }" @click="$emit('subscribe')">
+          {{ isSubscribed ? 'Subscribed' : 'Subscribe' }}
+        </button>
       </div>
 
       <div class="channel-actions-right">
         <!-- Placeholder for Like, Share, etc. similar to YouTube -->
-        <button class="action-btn-pill">
-          <span class="icon-placeholder">👍</span> 12K
+        <button class="action-btn-pill" :class="{ 'active-like': isLiked }" @click="$emit('like')">
+          <span class="icon-placeholder">👍</span> {{ likesCount }}
         </button>
-        <button class="action-btn-pill">
-          Share
+        <button class="action-btn-pill" @click="$emit('save-playlist')">
+          <span class="icon-placeholder">💾</span> Save
+        </button>
+        <button class="action-btn-pill" @click="shareVideo">
+          <Share2 size="18" style="margin-right: 6px;" /> Share
         </button>
       </div>
     </div>
@@ -233,5 +256,25 @@ const toggle = () => { expanded.value = !expanded.value; };
   color: var(--pico-color);
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+.owner-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sm-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  background: transparent;
+  width: auto;
+  margin-bottom: 0;
+}
+
+.active-like {
+  background: var(--pico-primary-background);
+  /* Or any color you prefer */
+  color: var(--pico-primary-inverse);
+  border-color: var(--pico-primary);
 }
 </style>

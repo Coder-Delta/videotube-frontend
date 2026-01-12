@@ -1,34 +1,37 @@
-import api from "@/utils/api.js";
+import axios from 'axios';
+import { getAuthData } from "@/utils/cookie";
 
-const toggleSubscription = async (channelId) => {
-    try {
-        const response = await api.post(`/subscriptions/c/${channelId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const API_URL = '/api/v1/subscriptions';
+
+const getAuthHeaders = () => {
+    const { token } = getAuthData();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-const getUserChannelSubscribers = async (channelId) => {
-    try {
-        const response = await api.get(`/subscriptions/c/${channelId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+// Toggle subscription for a channel
+const toggleSubscription = (channelId) => {
+    return axios.post(`${API_URL}/c/${channelId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
-const getSubscribedChannels = async (subscriberId) => {
-    try {
-        const response = await api.get(`/subscriptions/u/${subscriberId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+// Get list of subscribed channels for a user (subscriberId)
+const getSubscribedChannels = (subscriberId) => {
+    return axios.get(`${API_URL}/u/${subscriberId}`, {
+        headers: getAuthHeaders()
+    });
 };
 
-export {
+// Get list of subscribers for a channel (channelId)
+const getUserChannelSubscribers = (channelId) => {
+    return axios.get(`${API_URL}/c/${channelId}`, {
+        headers: getAuthHeaders()
+    });
+};
+
+
+export default {
     toggleSubscription,
-    getUserChannelSubscribers,
-    getSubscribedChannels
+    getSubscribedChannels,
+    getUserChannelSubscribers
 };

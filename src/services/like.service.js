@@ -1,42 +1,38 @@
-import api from "@/utils/api.js";
+import axios from 'axios';
+import { getAuthData } from "@/utils/cookie";
 
-const toggleVideoLike = async (videoId) => {
-    try {
-        const response = await api.post(`/likes/toggle/v/${videoId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const API_URL = '/api/v1/likes';
+
+const getAuthHeaders = () => {
+    const { token } = getAuthData();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-const toggleCommentLike = async (commentId) => {
-    try {
-        const response = await api.post(`/likes/toggle/c/${commentId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const toggleVideoLike = (videoId) => {
+    return axios.post(`${API_URL}/toggle/v/${videoId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
-const toggleTweetLike = async (tweetId) => {
-    try {
-        const response = await api.post(`/likes/toggle/t/${tweetId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const toggleCommentLike = (commentId) => {
+    return axios.post(`${API_URL}/toggle/c/${commentId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
-const getLikedVideos = async () => {
-    try {
-        const response = await api.get('/likes/videos');
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const toggleTweetLike = (tweetId) => {
+    return axios.post(`${API_URL}/toggle/t/${tweetId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
-export {
+const getLikedVideos = () => {
+    return axios.get(`${API_URL}/videos`, {
+        headers: getAuthHeaders()
+    });
+};
+
+export default {
     toggleVideoLike,
     toggleCommentLike,
     toggleTweetLike,

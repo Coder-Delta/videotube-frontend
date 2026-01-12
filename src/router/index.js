@@ -36,7 +36,12 @@ const routes = [
   {
     path: "/playlist",
     name: "Playlist",
-    component: Playlist,
+    component: Playlist, // List of user playlists
+  },
+  {
+    path: "/playlist/:id",
+    name: "PlaylistView",
+    component: () => import("@/pages/PlaylistView.vue"),
   },
   {
     path: "/profile",
@@ -74,6 +79,11 @@ const routes = [
     path: "/upload",
     name: "Upload",
     component: Upload,
+  },
+  {
+    path: "/channel/me",
+    name: "MyChannel",
+    component: () => import("@/pages/MyChannel.vue"),
   },
 ];
 

@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import Loader from "@/components/layout/Loader.vue";
 
+import { setAuthData } from "@/utils/cookie";
 import authService from "@/services/auth.service.js";
 
 const router = useRouter();
@@ -25,7 +26,6 @@ const handleLogin = async () => {
   }
 
   isLoading.value = true;
-  isLoading.value = true;
   try {
     const payload = { password: password.value };
     if (email.value.includes('@')) {
@@ -35,26 +35,15 @@ const handleLogin = async () => {
     }
 
     const response = await authService.loggedInUser(payload);
-
-    // Assuming response contains user data and accessToken
-    // Adjust based on actual API response structure
-    // Extract data from the nested 'data' object in the API response
     const { accessToken, loggedInUser } = response.data;
 
-    if (accessToken) {
-      localStorage.setItem('accessToken', accessToken);
-      document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Strict`;
-    }
+    setAuthData(accessToken, loggedInUser);
 
-    if (loggedInUser) {
-      localStorage.setItem('user', JSON.stringify(loggedInUser));
-    }
-
-    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('storage')); // Keeping this to trigger Navbar update (we'll update navbar to listen to this or check cookies)
     router.push("/");
   } catch (err) {
     console.error(err);
-    error.value = err.message || "Login failed. Please check your credentials.";
+    error.value = err.message || "Login failed.";
   } finally {
     isLoading.value = false;
   }

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { User, LogOut, Settings, UserCircle, PlaySquare, Upload, Search, Menu } from 'lucide-vue-next';
+import { getAuthData, clearAuthData } from '@/utils/cookie';
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -14,12 +15,8 @@ const dropdownOpen = ref(false);
 const showMobileSearch = ref(false);
 
 const checkAuth = () => {
-  const user = localStorage.getItem('user');
-  if (user) {
-    currentUser.value = JSON.parse(user);
-  } else {
-    currentUser.value = null;
-  }
+  const { user } = getAuthData();
+  currentUser.value = user;
 };
 
 const toggleDropdown = (e) => {
@@ -43,7 +40,8 @@ const handleClickOutside = (event) => {
   // Close mobile search if open and clicked outside
   const searchContainer = document.querySelector('.search-container.mobile-visible');
   const searchToggleButton = document.querySelector('.mobile-only .icon-btn');
-  if (showMobileSearch.value && searchContainer && !searchContainer.contains(event.target) && (!searchToggleButton || !searchToggleButton.contains(event.target))) {
+  if (showMobileSearch.value && searchContainer && !searchContainer.contains(event.target) && (!searchToggleButton ||
+    !searchToggleButton.contains(event.target))) {
     showMobileSearch.value = false;
   }
 };
@@ -60,7 +58,7 @@ onUnmounted(() => {
 });
 
 const logout = () => {
-  localStorage.removeItem('user');
+  clearAuthData();
   currentUser.value = null;
   window.location.reload();
 };
@@ -132,6 +130,9 @@ const logout = () => {
           <div class="dropdown-divider"></div>
 
           <nav class="dropdown-nav">
+            <router-link to="/channel/me" class="dropdown-item" @click="closeDropdown">
+              <PlaySquare size="18" /> My Channel
+            </router-link>
             <router-link to="/profile" class="dropdown-item" @click="closeDropdown">
               <UserCircle size="18" /> Profile
             </router-link>

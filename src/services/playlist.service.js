@@ -1,84 +1,88 @@
-import api from "@/utils/api.js";
+import axios from 'axios';
+import { getAuthData } from "@/utils/cookie";
 
-const createPlaylist = async (name, description) => {
+const API_URL = '/api/v1/playlist';
+
+const getAuthHeaders = () => {
+    const { token } = getAuthData();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const createPlaylist = async (data) => {
     try {
-        const response = await api.post('/playlists', { name, description });
+        const response = await axios.post(API_URL, data, {
+            headers: getAuthHeaders(),
+        });
         return response.data;
     } catch (error) {
+        console.error("Create playlist failed:", error);
         throw error;
     }
 };
 
-const getUserPlaylists = async (userId) => {
-    try {
-        const response = await api.get(`/playlists/user/${userId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+
+const updatePlaylist = (playlistId, data) => {
+    return axios.patch(`${API_URL}/${playlistId}`, data, {
+        headers: getAuthHeaders()
+    });
 };
 
-const getPlaylistById = async (playlistId) => {
-    try {
-        const response = await api.get(`/playlists/${playlistId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const deletePlaylist = (playlistId) => {
+    return axios.delete(`${API_URL}/${playlistId}`, {
+        headers: getAuthHeaders()
+    });
 };
 
-const addVideoToPlaylist = async (playlistId, videoId) => {
-    try {
-        const response = await api.patch(`/playlists/add/${videoId}/${playlistId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const getPlaylistById = (playlistId) => {
+    return axios.get(`${API_URL}/${playlistId}`, {
+        headers: getAuthHeaders()
+    });
 };
 
-const removeVideoFromPlaylist = async (playlistId, videoId) => {
-    try {
-        const response = await api.patch(`/playlists/remove/${videoId}/${playlistId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const getUserPlaylists = (userId) => {
+    return axios.get(`${API_URL}/user/${userId}`, {
+        headers: getAuthHeaders()
+    });
 };
 
-const deletePlaylist = async (playlistId) => {
-    try {
-        const response = await api.delete(`/playlists/${playlistId}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+// Helper for "My Playlists" - fetches for currently logged in user
+const getMyPlaylists = () => {
+    const { user } = getAuthData();
+    if (!user) return Promise.reject("User not logged in");
+    return getUserPlaylists(user._id);
 };
 
-const updatePlaylist = async (playlistId, name, description) => {
-    try {
-        const response = await api.patch(`/playlists/${playlistId}`, { name, description });
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+
+const addVideoToPlaylist = (playlistId, videoId) => {
+    return axios.patch(`${API_URL}/add/${videoId}/${playlistId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
-const getMyPlaylists = async () => {
-    try {
-        const response = await api.get('/playlists');
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+const removeVideoFromPlaylist = (playlistId, videoId) => {
+    return axios.patch(`${API_URL}/remove/${videoId}/${playlistId}`, {}, {
+        headers: getAuthHeaders()
+    });
 };
 
 export {
     createPlaylist,
-    getUserPlaylists,
-    getPlaylistById,
-    addVideoToPlaylist,
-    removeVideoFromPlaylist,
-    deletePlaylist,
     updatePlaylist,
-    getMyPlaylists
+    deletePlaylist,
+    getPlaylistById,
+    getUserPlaylists,
+    getMyPlaylists,
+    addVideoToPlaylist,
+    removeVideoFromPlaylist
+};
+
+export default {
+    createPlaylist,
+    updatePlaylist,
+    deletePlaylist,
+    getPlaylistById,
+    getUserPlaylists,
+    getMyPlaylists,
+    addVideoToPlaylist,
+    removeVideoFromPlaylist
 };

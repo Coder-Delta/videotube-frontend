@@ -5,6 +5,8 @@ import BaseLayout from '@/components/layout/BaseLayout.vue';
 import { User, LogOut, Edit3, Save, Moon, Sun, Monitor, Camera, Image as ImageIcon } from 'lucide-vue-next';
 import authService from '@/services/auth.service';
 
+import { getAuthData, setAuthData, clearAuthData } from "@/utils/cookie";
+
 const router = useRouter();
 const currentUser = ref(null);
 const isEditing = ref(false);
@@ -14,12 +16,11 @@ const editForm = reactive({ name: '', email: '' });
 
 onMounted(() => {
     // Load User
-    const user = localStorage.getItem('user');
+    const { user } = getAuthData();
     if (user) {
-        currentUser.value = JSON.parse(user);
+        currentUser.value = user;
         editForm.name = currentUser.value.fullName || currentUser.value.name;
         editForm.email = currentUser.value.email || '';
-        // Ensure coverImage exists in ref if not in storage, for UI consistency
         // Ensure coverImage exists in ref if not in storage, for UI consistency
         if (!currentUser.value.coverImage) currentUser.value.coverImage = '';
     }
@@ -82,115 +83,115 @@ const toggleEdit = () => {
 };
 
 const saveProfile = async () => {
-  console.group("🧩 saveProfile START");
+    // ... (validation logic stays same) ...
+    console.group("🧩 saveProfile START");
 
-  try {
-    if (!currentUser?.value) {
-      console.error("❌ currentUser missing");
-      return;
+    try {
+        if (!currentUser?.value) {
+            console.error("❌ currentUser missing");
+            return;
+        }
+
+        // 🔐 Required fields
+        if (!editForm.name?.trim() || !editForm.email?.trim()) {
+            alert("Name and email are required");
+            return;
+        }
+
+        // 🔍 Check changes
+        const isTextChanged =
+            editForm.name !== currentUser.value.fullName ||
+            editForm.email !== currentUser.value.email;
+
+        const hasAvatar = !!selectedAvatarFile?.value;
+        const hasCover = !!selectedCoverFile?.value;
+
+        if (!isTextChanged && !hasAvatar && !hasCover) {
+            console.log("⚠️ Nothing changed");
+            return;
+        }
+
+        // 📦 Build FormData
+        const formData = new FormData();
+
+        if (isTextChanged) {
+            formData.append("fullName", editForm.name);
+            formData.append("email", editForm.email);
+        }
+
+        // 🖼 Avatar validation
+        if (hasAvatar) {
+            const file = selectedAvatarFile.value;
+
+            if (!file.type.startsWith("image/")) {
+                throw new Error("Avatar must be an image");
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                throw new Error("Avatar exceeds 2MB");
+            }
+
+            formData.append("avatar", file);
+        }
+
+        // 🖼 Cover validation
+        if (hasCover) {
+            const file = selectedCoverFile.value;
+
+            if (!file.type.startsWith("image/")) {
+                throw new Error("Cover must be an image");
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                throw new Error("Cover exceeds 5MB");
+            }
+
+            formData.append("coverImage", file);
+        }
+
+        console.log("📡 Sending merged update request...");
+
+        const response = await authService.updateUserProfile(formData);
+
+        // ✅ Backend response shape
+        if (!response?.data) {
+            throw new Error("Invalid server response");
+        }
+
+        const updatedUser = response.data;
+
+        // 🔄 Sync state
+        currentUser.value = {
+            ...currentUser.value,
+            ...updatedUser,
+        };
+
+        // 💾 Persist
+        const { token } = getAuthData();
+        setAuthData(token, currentUser.value);
+
+        // 🧹 Cleanup
+        isEditing.value = false;
+        tempAvatar.value = null;
+        tempCover.value = null;
+        selectedAvatarFile.value = null;
+        selectedCoverFile.value = null;
+
+        window.dispatchEvent(new Event("storage"));
+
+        console.log("✅ Profile updated successfully");
+
+    } catch (error) {
+        console.group("🔥 saveProfile ERROR");
+        console.error(error);
+        console.groupEnd();
+
+        alert(error.message || "Profile update failed");
+    } finally {
+        console.groupEnd();
+        console.log("🏁 saveProfile END");
     }
-
-    // 🔐 Required fields
-    if (!editForm.name?.trim() || !editForm.email?.trim()) {
-      alert("Name and email are required");
-      return;
-    }
-
-    // 🔍 Check changes
-    const isTextChanged =
-      editForm.name !== currentUser.value.fullName ||
-      editForm.email !== currentUser.value.email;
-
-    const hasAvatar = !!selectedAvatarFile?.value;
-    const hasCover = !!selectedCoverFile?.value;
-
-    if (!isTextChanged && !hasAvatar && !hasCover) {
-      console.log("⚠️ Nothing changed");
-      return;
-    }
-
-    // 📦 Build FormData
-    const formData = new FormData();
-
-    if (isTextChanged) {
-      formData.append("fullName", editForm.name);
-      formData.append("email", editForm.email);
-    }
-
-    // 🖼 Avatar validation
-    if (hasAvatar) {
-      const file = selectedAvatarFile.value;
-
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Avatar must be an image");
-      }
-
-      if (file.size > 2 * 1024 * 1024) {
-        throw new Error("Avatar exceeds 2MB");
-      }
-
-      formData.append("avatar", file);
-    }
-
-    // 🖼 Cover validation
-    if (hasCover) {
-      const file = selectedCoverFile.value;
-
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Cover must be an image");
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error("Cover exceeds 5MB");
-      }
-
-      formData.append("coverImage", file);
-    }
-
-    console.log("📡 Sending merged update request...");
-
-    const response = await authService.updateUserProfile(formData);
-
-    // ✅ Backend response shape
-    if (!response?.data) {
-      throw new Error("Invalid server response");
-    }
-
-    const updatedUser = response.data;
-
-    // 🔄 Sync state
-    currentUser.value = {
-      ...currentUser.value,
-      ...updatedUser,
-    };
-
-    // 💾 Persist
-    localStorage.setItem("user", JSON.stringify(currentUser.value));
-
-    // 🧹 Cleanup
-    isEditing.value = false;
-    tempAvatar.value = null;
-    tempCover.value = null;
-    selectedAvatarFile.value = null;
-    selectedCoverFile.value = null;
-
-    window.dispatchEvent(new Event("storage"));
-
-    console.log("✅ Profile updated successfully");
-
-  } catch (error) {
-    console.group("🔥 saveProfile ERROR");
-    console.error(error);
-    console.groupEnd();
-
-    alert(error.message || "Profile update failed");
-  } finally {
-    console.groupEnd();
-    console.log("🏁 saveProfile END");
-  }
 };
-
-
 
 const goToChannel = () => {
     if (!currentUser.value) return;
@@ -199,7 +200,7 @@ const goToChannel = () => {
 };
 
 const logout = () => {
-    localStorage.removeItem('user');
+    clearAuthData();
     currentUser.value = null;
     router.push('/login');
 };

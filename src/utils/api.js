@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCookie } from "./cookie";
 
 // axios instance
 const api = axios.create({
@@ -9,7 +10,7 @@ const api = axios.create({
 // add token before every request
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("accessToken");
+        const token = getCookie("accessToken");
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

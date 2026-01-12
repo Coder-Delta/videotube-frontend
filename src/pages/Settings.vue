@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import authService from '@/services/auth.service.js';
+import { clearAuthData } from '@/utils/cookie';
 import { Trash2, AlertTriangle, Key, Shield } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -19,8 +20,8 @@ const deleteAccount = async () => {
     try {
         await authService.deleteAccount();
 
-        // Clear local storage
-        localStorage.removeItem('user');
+        // Clear local storage / cookies
+        clearAuthData();
         localStorage.removeItem('pico_theme');
 
         // Redirect to home and reload
