@@ -41,7 +41,7 @@ const fetchVideos = async () => {
       title: video.title,
       thumbnail: video.thumbnail,
       channel: video.owner?.username || "Cholochitro User",
-      views: video.views ? `${video.views} views` : "0 views",
+      // views removed
       time: new Date(video.createdAt).toLocaleDateString(),
       duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00"
     }));
@@ -77,7 +77,7 @@ onMounted(() => {
     <div v-else class="grid">
       <div v-for="video in videos" :key="video.id">
         <VideoCard :id="video.id" :title="video.title" :thumbnail="video.thumbnail" :channel="video.channel"
-          :views="video.views" :time="video.time" :duration="video.duration" />
+          :time="video.time" :duration="video.duration" />
       </div>
     </div>
   </BaseLayout>

@@ -75,7 +75,7 @@ const fetchVideoDetails = async (id) => {
       src: data.videoFile,
       poster: data.thumbnail,
       title: data.title,
-      views: `${data.views || 0} views`,
+      // views removed
       date: new Date(data.createdAt).toLocaleDateString(),
       description: data.description,
       isPublished: data.isPublished,
@@ -132,7 +132,7 @@ const fetchVideoDetails = async (id) => {
           id: v._id,
           title: v.title,
           channel: v.owner?.username || "Cholochitro User",
-          views: `${v.views || 0} views`,
+          // views removed
           time: new Date(v.createdAt).toLocaleDateString(),
           duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
           thumbnail: v.thumbnail,
@@ -141,18 +141,18 @@ const fetchVideoDetails = async (id) => {
       // Fallback with mock data if still empty
       if (suggestions.value.length === 0) {
         suggestions.value = [
-          { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', views: '12K views', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
-          { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', views: '5K views', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
-          { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', views: '20K views', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
+          { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
+          { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
+          { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
         ];
       }
 
     } catch (sError) {
       console.warn("Suggestions fetch failed, using fallback", sError);
       suggestions.value = [
-        { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', views: '12K views', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
-        { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', views: '5K views', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
-        { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', views: '20K views', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
+        { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
+        { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
+        { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
       ];
     }
 
@@ -313,11 +313,11 @@ watch(() => route.params.id, id => {
       <section>
         <VideoPlayer :src="video.src" :poster="video.poster" />
         <div class="description-card">
-          <VideoDescription :title="video.title" :views="video.views" :date="video.date"
-            :description="video.description" :channel="video.channel" :is-owner="isOwner"
-            :is-published="video.isPublished" :is-subscribed="isSubscribed" :likes-count="video.likesCount"
-            :is-liked="video.isLiked" @toggle-publish="handleTogglePublish" @delete="handleDelete" @edit="openEdit"
-            @save-playlist="openPlaylistModal" @subscribe="handleSubscribe" @like="handleLike" />
+          <VideoDescription :title="video.title" :date="video.date" :description="video.description"
+            :channel="video.channel" :is-owner="isOwner" :is-published="video.isPublished" :is-subscribed="isSubscribed"
+            :likes-count="video.likesCount" :is-liked="video.isLiked" @toggle-publish="handleTogglePublish"
+            @delete="handleDelete" @edit="openEdit" @save-playlist="openPlaylistModal" @subscribe="handleSubscribe"
+            @like="handleLike" />
         </div>
 
         <!-- Edit Modal -->
@@ -378,7 +378,7 @@ watch(() => route.params.id, id => {
           </article>
         </dialog>
 
-        <Comments />
+        <Comments :video-id="video.id" />
       </section>
 
       <div class="sidebar-suggestions">

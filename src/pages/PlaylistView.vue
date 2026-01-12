@@ -110,7 +110,6 @@ onMounted(fetchPlaylist);
                     <div class="video-preview">
                         <VideoCard :id="video._id" :title="video.title" :thumbnail="video.thumbnail"
                             :channel="video.owner?.username || 'Unknown'"
-                            :views="video.views ? `${video.views} views` : '0 views'"
                             :time="new Date(video.createdAt).toLocaleDateString()"
                             :duration="video.duration ? (video.duration / 60).toFixed(2) : '00:00'" />
                     </div>

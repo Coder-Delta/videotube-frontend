@@ -6,7 +6,7 @@ const props = defineProps({
     title: { type: String, required: true },
     thumbnail: { type: String, default: "" },
     channel: { type: String, required: true },
-    views: { type: String, default: "1.2M views" },
+    // views removed
     time: { type: String, default: "2 days ago" },
     duration: { type: String, default: "12:45" }
 });
@@ -24,7 +24,7 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
         <div class="info">
             <h6 class="title">{{ title }}</h6>
             <p class="meta">{{ channel }}</p>
-            <p class="meta small">{{ views }} • {{ time }}</p>
+            <p class="meta small">{{ time }}</p>
         </div>
     </div>
 </template>

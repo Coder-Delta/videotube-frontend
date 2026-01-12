@@ -7,7 +7,7 @@ const props = defineProps({
   title: { type: String, required: true },
   thumbnail: { type: String, default: "" },
   channel: { type: String, required: true },
-  views: { type: [String, Number], default: "0 views" },
+  // views removed
   time: { type: String, default: "Just now" },
   duration: { type: [String, Number], default: "00:00" }
 });
@@ -31,7 +31,7 @@ const goToWatch = () => router.push(`/watch/${props.id}`);
           {{ channel }}
           <CheckCircle2 :size="12" style="display:inline;" />
           <br />
-          <small>{{ views }} • {{ time }}</small>
+          <small>{{ time }}</small>
         </p>
       </hgroup>
     </div>

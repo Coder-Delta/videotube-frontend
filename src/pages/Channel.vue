@@ -160,7 +160,7 @@ const fetchVideos = async (userId) => {
       id: v._id,
       title: v.title,
       thumbnail: v.thumbnail,
-      views: v.views ? `${v.views} views` : "0 views",
+      // views removed
       time: new Date(v.createdAt).toLocaleDateString(),
       duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
       isPublished: v.isPublished
@@ -311,8 +311,8 @@ onMounted(() => {
       <!-- VIDEOS TAB -->
       <div v-if="activeTab === 'Videos'" class="video-grid">
         <div v-for="video in videos" :key="video.id" class="video-item-wrapper">
-          <VideoCard :id="video.id" :title="video.title" :thumbnail="video.thumbnail" :views="video.views"
-            :time="video.time" :duration="video.duration" :channel="channel.name" />
+          <VideoCard :id="video.id" :title="video.title" :thumbnail="video.thumbnail" :time="video.time"
+            :duration="video.duration" :channel="channel.name" />
           <div v-if="isOwner" class="owner-overlay">
             <button class="icon-btn-danger" @click="deleteVideo(video.id)" title="Delete">
               <Trash2 size="16" />

@@ -19,7 +19,7 @@ onMounted(async () => {
             id: i + 200,
             title: `Trending Video #${i + 1}`,
             channel: 'Popular Creator',
-            views: '1.5M views',
+            // views removed
             time: '12 hours ago',
             duration: '15:30'
         }));

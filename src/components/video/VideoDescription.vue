@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Hash, Share2 } from "lucide-vue-next";
 
 const props = defineProps({
   title: { type: String, required: true },
-  views: { type: String, required: true },
+  // views removed
   date: { type: String, required: true },
   description: { type: String, required: true },
   tags: { type: Array, default: () => ['#streaming', '#video', '#tech'] },
@@ -82,7 +82,7 @@ const shareVideo = async () => {
     <!-- Description Box -->
     <article class="description-box">
       <div class="desc-meta">
-        <strong>{{ views }}</strong> • <span>{{ date }}</span>
+        <span>{{ date }}</span>
         <div class="tags">
           <span v-for="tag in tags" :key="tag"> {{ tag }}</span>
         </div>

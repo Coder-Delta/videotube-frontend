@@ -57,7 +57,7 @@ const fetchMyVideos = async () => {
             title: video.title,
             thumbnail: video.thumbnail,
             channel: video.owner?.username || currentUser.value.username,
-            views: video.views ? `${video.views} views` : "0 views",
+            // views removed
             time: new Date(video.createdAt).toLocaleDateString(),
             duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00",
             isPublished: video.isPublished
@@ -141,7 +141,7 @@ const togglePublish = async (video) => {
             <article v-for="video in videos" :key="video.id" class="manage-card">
                 <div class="card-preview">
                     <VideoCard :id="video.id" :title="video.title" :thumbnail="video.thumbnail" :channel="video.channel"
-                        :views="video.views" :time="video.time" :duration="video.duration" />
+                        :time="video.time" :duration="video.duration" />
                 </div>
                 <footer class="card-actions">
                     <div class="status-badge" :class="{ private: !video.isPublished }">
