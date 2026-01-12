@@ -44,21 +44,13 @@ const shareVideo = async () => {
     <!-- Channel Info Bar -->
     <div class="channel-bar">
       <div class="channel-info-left">
-        <div class="avatar-circle">
-          <img v-if="channel.avatar" :src="channel.avatar" alt="Channel" />
-          <span v-else>{{ channel.name.charAt(0) }}</span>
-        </div>
-        <div class="channel-text">
-          <a :href="`/channel/${channel.username || ''}`" class="channel-name">{{ channel.name }}</a>
-          <span class="sub-count">{{ channel.subscribers }} subscribers</span>
-        </div>
 
         <div v-if="isOwner" class="owner-actions">
-          <button class="outline secondary sm-btn" @click="$emit('edit')">Edit</button>
-          <button class="outline sm-btn" @click="$emit('toggle-publish')">
+          <button class="outline secondary btn-sm" @click="$emit('edit')">Edit</button>
+          <button class="outline btn-sm" @click="$emit('toggle-publish')">
             {{ isPublished ? 'Public' : 'Private' }}
           </button>
-          <button class="outline contrast sm-btn" @click="$emit('delete')">Delete</button>
+          <button class="outline contrast btn-sm" @click="$emit('delete')">Delete</button>
         </div>
         <button v-else class="subscribe-btn-sm" :class="{ 'outline': isSubscribed }" @click="$emit('subscribe')">
           {{ isSubscribed ? 'Subscribed' : 'Subscribe' }}
@@ -68,7 +60,7 @@ const shareVideo = async () => {
       <div class="channel-actions-right">
         <!-- Placeholder for Like, Share, etc. similar to YouTube -->
         <button class="action-btn-pill" :class="{ 'active-like': isLiked }" @click="$emit('like')">
-          <span class="icon-placeholder">👍</span> {{ likesCount }}
+          <span class="icon-placeholder">👍</span> {{ isLiked ? 'Liked' : 'Like' }}
         </button>
         <button class="action-btn-pill" @click="$emit('save-playlist')">
           <span class="icon-placeholder">💾</span> Save
@@ -124,26 +116,6 @@ const shareVideo = async () => {
   gap: 0.75rem;
 }
 
-.avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--pico-card-background-color);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: var(--pico-primary);
-  border: 1px solid var(--pico-muted-border-color);
-  flex-shrink: 0;
-}
-
-.avatar-circle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 
 .channel-text {
   display: flex;
@@ -263,13 +235,7 @@ const shareVideo = async () => {
   gap: 0.5rem;
 }
 
-.sm-btn {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8rem;
-  background: transparent;
-  width: auto;
-  margin-bottom: 0;
-}
+
 
 .active-like {
   background: var(--pico-primary-background);

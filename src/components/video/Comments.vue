@@ -28,18 +28,47 @@ const checkUser = () => {
     currentUser.value = user || null;
 };
 
+
 const fetchComments = async () => {
     if (!videoId.value) return;
     isLoading.value = true;
     try {
         const res = await getVideoComments(videoId.value);
-        // Backend returns standard response structure? 
-        // Service returns response.data. Usually data.data contains list. 
-        // Comment service: return response.data.
-        // Let's assume response.data is { data: { docs: [...], totalDocs: ... } } or similar
-        // Looking at previous patterns, it's often res.data.data
         const data = res.data || res;
-        comments.value = data.docs || data || [];
+        let commentsList = data.docs || data || [];
+
+        // Handle unpopulated owner fields
+        commentsList = commentsList.map(comment => {
+            // If owner is just an ObjectId string or not populated
+            if (typeof comment.owner === 'string' || !comment.owner?.username) {
+                // Check if it's the current user's comment
+                if (currentUser.value && (comment.owner === currentUser.value._id || comment.owner?._id === currentUser.value._id)) {
+                    return {
+                        ...comment,
+                        owner: {
+                            _id: currentUser.value._id,
+                            username: currentUser.value.username,
+                            fullName: currentUser.value.fullName,
+                            avatar: currentUser.value.avatar
+                        }
+                    };
+                }
+                // For other users, we'll show a placeholder
+                // Ideally the backend should populate this
+                return {
+                    ...comment,
+                    owner: {
+                        _id: comment.owner,
+                        username: 'user',
+                        fullName: 'User',
+                        avatar: ''
+                    }
+                };
+            }
+            return comment;
+        });
+
+        comments.value = commentsList;
         totalComments.value = data.totalDocs || comments.value.length;
     } catch (e) {
         console.error("Failed to fetch comments", e);
@@ -52,12 +81,15 @@ const handleAddComment = async (content) => {
     if (!currentUser.value) return alert("Please login to comment");
     try {
         const res = await apiAddComment(content, videoId.value);
-        // Optimistic append or re-fetch?
-        // Service returns the new comment.
         const newComment = res.data || res;
         // Ensure owner is populated for UI immediately
-        if (!newComment.owner) {
-            newComment.owner = currentUser.value;
+        if (!newComment.owner || typeof newComment.owner === 'string') {
+            newComment.owner = {
+                _id: currentUser.value._id,
+                username: currentUser.value.username,
+                fullName: currentUser.value.fullName,
+                avatar: currentUser.value.avatar
+            };
         }
         comments.value.unshift(newComment);
         totalComments.value++;

@@ -1,7 +1,36 @@
-/* Global CSS */
-/* Pico CSS handles html/body defaults */
-
 /* Ensure the root div fills the screen */
 #app {
   min-height: 100vh;
+}
+
+/* Global Button Utilities */
+.btn-sm {
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.8rem !important;
+  width: auto !important;
+  min-height: auto !important;
+  margin-bottom: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 99px !important;
+}
+
+/* Pico CSS Overrides for Small Buttons */
+button.btn-sm, 
+[role="button"].btn-sm {
+  line-height: 1.2;
+}
+
+/* Fix for secondary outline buttons if needed */
+.secondary.outline {
+  --pico-color: var(--pico-secondary-inverse);
+  --pico-background-color: transparent;
+  --pico-border-color: var(--pico-secondary-border);
+}
+
+.secondary.outline:hover {
+  --pico-background-color: var(--pico-secondary-hover-background);
+  --pico-color: var(--pico-secondary-inverse);
 }

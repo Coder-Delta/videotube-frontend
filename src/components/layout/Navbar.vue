@@ -1,18 +1,26 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { User, LogOut, Settings, UserCircle, PlaySquare, Upload, Search, Menu } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 import { getAuthData, clearAuthData } from '@/utils/cookie';
 
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Trending', path: '/trending' },
-  { label: 'Subscriptions', path: '/subscriptions' },
   { label: 'Playlist', path: '/playlist' }
 ];
 
 const currentUser = ref(null);
 const dropdownOpen = ref(false);
 const showMobileSearch = ref(false);
+const searchQuery = ref('');
+const router = useRouter();
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ name: 'Search', query: { q: searchQuery.value.trim() } });
+    showMobileSearch.value = false;
+  }
+};
 
 const checkAuth = () => {
   const { user } = getAuthData();
@@ -82,10 +90,10 @@ const logout = () => {
     <!-- Center: Search -->
     <ul class="nav-center">
       <li class="search-container" :class="{ 'mobile-visible': showMobileSearch }">
-        <div class="search-wrapper">
+        <form @submit.prevent="handleSearch" class="search-wrapper">
           <Search size="18" class="search-icon-input" />
-          <input type="search" placeholder="Search" aria-label="Search" class="search-input" />
-        </div>
+          <input v-model="searchQuery" type="search" placeholder="Search" aria-label="Search" class="search-input" />
+        </form>
       </li>
     </ul>
 
@@ -151,7 +159,7 @@ const logout = () => {
         </div>
       </li>
       <li v-else>
-        <router-link to="/login" role="button" class="sm-btn">Sign In</router-link>
+        <router-link to="/login" role="button" class="btn-sm">Sign In</router-link>
       </li>
     </ul>
   </nav>

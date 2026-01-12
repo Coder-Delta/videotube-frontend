@@ -37,7 +37,8 @@ onMounted(async () => {
                 </div>
                 <footer>
                     <strong>{{ list.name }}</strong>
-                    <a href="#" role="button" class="secondary outline btn-sm">View</a>
+                    <router-link :to="'/playlist/' + list._id" role="button"
+                        class="secondary outline btn-sm">View</router-link>
                 </footer>
             </article>
         </div>
@@ -78,11 +79,5 @@ footer {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.875rem;
-    width: auto;
 }
 </style>

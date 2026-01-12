@@ -7,11 +7,11 @@ import Login from "@/pages/Login.vue";
 import Register from "@/pages/Register.vue";
 import Channel from "@/pages/Channel.vue";
 import Upload from "@/pages/Upload.vue";
-import Trending from "@/pages/Trending.vue";
 import Subscriptions from "@/pages/Subscriptions.vue";
 import Playlist from "@/pages/Playlist.vue";
 import Profile from "@/pages/Profile.vue";
 import Settings from "@/pages/Settings.vue";
+import Search from "@/pages/Search.vue";
 
 const route = useRouter();
 
@@ -24,9 +24,9 @@ const routes = [
     component: Home,
   },
   {
-    path: "/trending",
-    name: "Trending",
-    component: Trending,
+    path: "/search",
+    name: "Search",
+    component: Search,
   },
   {
     path: "/subscriptions",

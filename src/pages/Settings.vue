@@ -204,11 +204,7 @@ h3 {
     border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
-.btn-sm {
-    padding: 0.4rem 1rem;
-    font-size: 0.9rem;
-    width: fit-content;
-}
+
 
 .danger-zone {
     padding: 1.5rem;

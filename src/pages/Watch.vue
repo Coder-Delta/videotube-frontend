@@ -67,8 +67,14 @@ const fetchVideoDetails = async (id) => {
     });
 
     const data = res.data?.data ?? res.data;
-    const ownerObj = typeof data.owner === "object" ? data.owner : null;
-    const ownerId = ownerObj ? ownerObj._id : data.owner;
+    console.log("Video data received:", data); // Debug log
+
+    // Extract owner information
+    const ownerObj = typeof data.owner === "object" && data.owner !== null ? data.owner : null;
+    const ownerId = ownerObj?._id || data.owner;
+
+    console.log("Owner object:", ownerObj); // Debug log
+    console.log("Owner ID:", ownerId); // Debug log
 
     video.value = {
       id: data._id,
@@ -90,9 +96,11 @@ const fetchVideoDetails = async (id) => {
       },
     };
 
+    console.log("Channel info set:", video.value.channel); // Debug log
+
     checkOwner();
 
-    if (!isOwner.value && currentUser.value) {
+    if (!isOwner.value && currentUser.value && ownerId) {
       try {
         const subRes = await subscriptionService.getUserChannelSubscribers(ownerId);
         const subs = subRes.data?.data || [];
@@ -100,8 +108,27 @@ const fetchVideoDetails = async (id) => {
         isSubscribed.value = subs.some(
           s => (s.subscriber?._id || s.subscriber) === currentUser.value._id
         );
+        console.log("Subscription status:", isSubscribed.value, "Subscribers:", subs.length); // Debug log
       } catch (e) {
         logError("SUBSCRIPTION_CHECK", e);
+      }
+    }
+
+    // Check Like Status
+    if (currentUser.value) {
+      try {
+        const likedRes = await likeService.getLikedVideos();
+        const likedVideos = likedRes.data?.data || likedRes.data || [];
+        // Checks if current video ID exists in liked videos list
+        const isLiked = likedVideos.some(item => {
+          // Robust checking for both { video: { _id: ... } } and directly { _id: ... }
+          const vidId = item.video?._id || item._id || (typeof item === 'string' ? item : null);
+          return vidId === id;
+        });
+        video.value.isLiked = isLiked;
+        console.log("Current video like status fetched from backend:", isLiked);
+      } catch (e) {
+        logError("LIKE_STATUS_CHECK", e);
       }
     }
 
@@ -134,21 +161,13 @@ const fetchVideoDetails = async (id) => {
           channel: v.owner?.username || "Cholochitro User",
           // views removed
           time: new Date(v.createdAt).toLocaleDateString(),
-          duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
           thumbnail: v.thumbnail,
-        }));
-
-      // Fallback with mock data if still empty
-      if (suggestions.value.length === 0) {
-        suggestions.value = [
-          { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
-          { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
-          { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
-        ];
-      }
-
-    } catch (sError) {
-      console.warn("Suggestions fetch failed, using fallback", sError);
+          duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
+        }))
+        .slice(0, 10);
+    } catch (e) {
+      console.error("Failed to fetch suggestions:", e);
+      // Fallback suggestions
       suggestions.value = [
         { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
         { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
@@ -178,11 +197,24 @@ const handleLike = async () => {
 
 const handleSubscribe = async () => {
   if (!currentUser.value) return alert("Please log in");
+  if (!video.value.channel?.id) {
+    alert("Channel information not available");
+    return;
+  }
+
   try {
     await subscriptionService.toggleSubscription(video.value.channel.id);
     isSubscribed.value = !isSubscribed.value;
+
+    // Optimistically update subscriber count
+    const currentCount = parseInt(video.value.channel.subscribers) || 0;
+    const newCount = isSubscribed.value ? currentCount + 1 : currentCount - 1;
+    video.value.channel.subscribers = `${Math.max(0, newCount)} Subscribers`;
+
+    alert(isSubscribed.value ? "Subscribed successfully!" : "Unsubscribed successfully!");
   } catch (e) {
     logError("SUBSCRIBE", e);
+    alert("Failed to update subscription");
   }
 };
 

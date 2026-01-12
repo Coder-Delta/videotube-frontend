@@ -493,14 +493,7 @@ const logout = () => {
     gap: 0.5rem;
 }
 
-.btn-sm {
-    padding: 0.4rem 1rem;
-    font-size: 0.9rem;
-    border-radius: 99px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+
 
 /* Theme Section */
 .theme-section {
