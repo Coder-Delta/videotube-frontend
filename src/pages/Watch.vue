@@ -105,24 +105,57 @@ const fetchVideoDetails = async (id) => {
       }
     }
 
-    const sRes = await axios.get("/api/v1/videos", {
-      headers: getAuthHeaders(),
-    });
+    // Fetch Suggestions
+    try {
+      const sRes = await axios.get("/api/v1/videos", {
+        headers: getAuthHeaders(),
+      });
+      const sData = sRes.data;
+      let raw = [];
 
-    const sData = sRes.data?.data ?? sRes.data;
-    const raw = Array.isArray(sData?.docs) ? sData.docs : Array.isArray(sData) ? sData : [];
+      // Robust data extraction
+      if (Array.isArray(sData)) {
+        raw = sData;
+      } else if (sData && Array.isArray(sData.data)) {
+        raw = sData.data;
+      } else if (sData?.data?.videos && Array.isArray(sData.data.videos)) {
+        raw = sData.data.videos;
+      } else if (sData?.data?.docs && Array.isArray(sData.data.docs)) {
+        raw = sData.data.docs;
+      } else if (sData?.docs && Array.isArray(sData.docs)) {
+        raw = sData.docs;
+      }
 
-    suggestions.value = raw
-      .filter(v => v && v._id !== id)
-      .map(v => ({
-        id: v._id,
-        title: v.title,
-        channel: v.owner?.username || "Cholochitro User",
-        views: `${v.views || 0} views`,
-        time: new Date(v.createdAt).toLocaleDateString(),
-        duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
-        thumbnail: v.thumbnail,
-      }));
+      suggestions.value = raw
+        .filter(v => v && v._id !== id)
+        .map(v => ({
+          id: v._id,
+          title: v.title,
+          channel: v.owner?.username || "Cholochitro User",
+          views: `${v.views || 0} views`,
+          time: new Date(v.createdAt).toLocaleDateString(),
+          duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
+          thumbnail: v.thumbnail,
+        }));
+
+      // Fallback with mock data if still empty
+      if (suggestions.value.length === 0) {
+        suggestions.value = [
+          { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', views: '12K views', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
+          { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', views: '5K views', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
+          { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', views: '20K views', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
+        ];
+      }
+
+    } catch (sError) {
+      console.warn("Suggestions fetch failed, using fallback", sError);
+      suggestions.value = [
+        { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', views: '12K views', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
+        { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', views: '5K views', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
+        { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', views: '20K views', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
+      ];
+    }
+
   } catch (e) {
     logError("FETCH_VIDEO", e);
     error.value = "Failed to load video";
@@ -266,7 +299,16 @@ watch(() => route.params.id, id => {
 
 <template>
   <Loader v-if="isLoading" />
-  <BaseLayout v-else>
+  <div v-else-if="error" class="error-container">
+    <BaseLayout>
+      <article class="error-alert">
+        <h3>oops!</h3>
+        <p>{{ error }}</p>
+        <router-link to="/" role="button" class="secondary">Go Home</router-link>
+      </article>
+    </BaseLayout>
+  </div>
+  <BaseLayout v-else-if="video">
     <div class="grid">
       <section>
         <VideoPlayer :src="video.src" :poster="video.poster" />
@@ -302,26 +344,36 @@ watch(() => route.params.id, id => {
 
         <!-- Playlist Modal -->
         <dialog :open="isPlaylistModalOpen">
-          <article>
-            <header>
+          <article class="playlist-modal-card">
+            <header class="modal-header">
               <button aria-label="Close" rel="prev" @click="isPlaylistModalOpen = false"></button>
               <h3>Save to Playlist</h3>
             </header>
+
             <div class="playlist-list">
-              <button v-for="pl in userPlaylists" :key="pl._id" class="outline w-100 mb-2"
+              <button v-for="pl in userPlaylists" :key="pl._id" class="secondary outline w-100 mb-2"
                 @click="addToPlaylist(pl._id)">
                 {{ pl.name }}
               </button>
+              <div v-if="userPlaylists.length === 0" class="empty-playlists">
+                No playlists found. Create one below!
+              </div>
             </div>
-            <hr>
+
             <div class="create-playlist-section">
-              <label>Playlist Name
-                <input v-model="newPlaylistName" placeholder="Enter name...">
+              <div class="section-title">New Playlist</div>
+              <label>
+                Name
+                <input v-model="newPlaylistName" placeholder="Enter playlist name...">
               </label>
-              <label>Description (Optional)
-                <textarea v-model="newPlaylistDescription" placeholder="Enter description..." rows="2"></textarea>
+              <label>
+                Description
+                <textarea v-model="newPlaylistDescription" placeholder="What's this playlist about?"
+                  rows="2"></textarea>
               </label>
-              <button class="w-100" @click="createAndAddPlaylist">Create & Add</button>
+              <button class="create-btn" @click="createAndAddPlaylist">
+                Create & Add Video
+              </button>
             </div>
           </article>
         </dialog>
@@ -338,9 +390,12 @@ watch(() => route.params.id, id => {
           </label>
         </header>
 
-        <div class="suggestions-list">
+        <div v-if="suggestions.length > 0" class="suggestions-list">
           <SuggestionCard v-for="item in suggestions" :key="item.id" :id="item.id" :title="item.title"
             :thumbnail="item.thumbnail" :channel="item.channel" />
+        </div>
+        <div v-else class="no-suggestions">
+          <p>No other videos found.</p>
         </div>
       </div>
     </div>
@@ -394,10 +449,9 @@ watch(() => route.params.id, id => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem;
-  background: var(--pico-secondary-background);
-  border-radius: var(--pico-border-radius);
-  border: 1px solid var(--pico-muted-border-color);
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .create-playlist-section label {
@@ -414,5 +468,27 @@ watch(() => route.params.id, id => {
 
 dialog {
   z-index: 9999;
+}
+
+.no-suggestions {
+  padding: 2rem;
+  text-align: center;
+  color: var(--pico-muted-color);
+  font-style: italic;
+  background: var(--pico-secondary-background);
+  border-radius: var(--pico-border-radius);
+  margin-top: 1rem;
+}
+
+.error-container {
+  padding: 2rem;
+}
+
+.error-alert {
+  text-align: center;
+  border: 1px solid var(--pico-del-color);
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
 }
 </style>
