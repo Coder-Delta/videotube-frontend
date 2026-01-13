@@ -3,24 +3,24 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy dependency files
 COPY package*.json ./
 RUN npm install
 
-# Copy project files
 COPY . .
-
-# Build Vue (Vite)
 RUN npm run build
 
 
 # -------- Production stage --------
-FROM nginx:alpine
+FROM node:20-alpine
 
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
 
-COPY --from=build /app/dist /usr/share/nginx/html
+# Install a tiny static file server
+RUN npm install -g serve
 
-EXPOSE 80
+# Copy built files
+COPY --from=build /app/dist ./dist
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist", "-l", "3000"]
