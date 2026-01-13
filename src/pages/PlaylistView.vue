@@ -6,6 +6,7 @@ import BaseLayout from '@/components/layout/BaseLayout.vue';
 import Loader from '@/components/layout/Loader.vue';
 import VideoCard from '@/components/video/VideoCard.vue';
 import { Trash2 } from 'lucide-vue-next';
+import { showToast } from '@/utils/toast';
 
 const route = useRoute();
 const isLoading = ref(true);
@@ -82,7 +83,7 @@ const removeVideo = async (videoId) => {
         });
         videos.value = videos.value.filter(v => v._id !== videoId);
     } catch (e) {
-        alert("Failed to remove video");
+        showToast("Failed to remove video", 'error');
     }
 };
 

@@ -18,7 +18,6 @@ const fetchVideos = async () => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     const response = await axios.get('/api/v1/videos', { headers });
-    console.log("Videos API Response:", response.data);
 
     let videoList = [];
     const data = response.data;
@@ -41,7 +40,6 @@ const fetchVideos = async () => {
       title: video.title,
       thumbnail: video.thumbnail,
       channel: video.owner?.username || "Cholochitro User",
-      // views removed
       time: new Date(video.createdAt).toLocaleDateString(),
       duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00"
     }));

@@ -3,8 +3,9 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import authService from '@/services/auth.service.js';
-import { clearAuthData } from '@/utils/cookie';
+import { clearAuthData, removeCookie } from '@/utils/cookie';
 import { Trash2, AlertTriangle, Key, Shield } from 'lucide-vue-next';
+import { showToast } from '@/utils/toast';
 
 const router = useRouter();
 const showConfirmation = ref(false);
@@ -22,16 +23,13 @@ const deleteAccount = async () => {
 
         // Clear local storage / cookies
         clearAuthData();
-        localStorage.removeItem('pico_theme');
+        removeCookie('pico_theme');
 
         // Redirect to home and reload
-        router.push('/');
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
+        window.location.href = '/';
     } catch (error) {
         console.error("Failed to delete account:", error);
-        alert("Failed to delete account. Please try again.");
+        showToast("Failed to delete account. Please try again.", 'error');
     }
 };
 

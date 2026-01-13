@@ -3,6 +3,7 @@ import { ref, onUnmounted } from 'vue';
 import { UploadCloud, Image, Video } from 'lucide-vue-next';
 import BaseLayout from '@/components/layout/BaseLayout.vue';
 import axios from 'axios';
+import { showToast } from "@/utils/toast";
 
 const isDragging = ref(false);
 const isDraggingThumbnail = ref(false);
@@ -46,10 +47,9 @@ const handleVideoSelect = (e) => {
 const processVideoFile = (file) => {
     if (file.type.startsWith('video/')) {
         videoFile.value = file;
-        // Auto-fill title from filename (remove extension)
         title.value = file.name.split('.').slice(0, -1).join('.');
     } else {
-        alert('Please select a valid video file.');
+        showToast('Please select a valid video file.', 'error');
     }
 };
 
@@ -90,18 +90,18 @@ const processThumbnailFile = (file) => {
         thumbnailFile.value = file;
         thumbnailPreview.value = URL.createObjectURL(file);
     } else {
-        alert('Please select a valid image file.');
+        showToast('Please select a valid image file.', 'error');
     }
 };
 
 const uploadFiles = async () => {
     if (!videoFile.value || !thumbnailFile.value) {
-        alert('Please select both a video and a thumbnail.');
+        showToast('Please select both a video and a thumbnail.', 'error');
         return;
     }
 
     if (!title.value.trim() || !description.value.trim()) {
-        alert('Please provide a title and description.');
+        showToast('Please provide a title and description.', 'error');
         return;
     }
 
@@ -118,7 +118,7 @@ const uploadFiles = async () => {
                 'Content-Type': 'multipart/form-data'
             }
         });
-        alert('Upload successful!');
+        showToast('Upload successful!', 'success');
         // Reset form
         videoFile.value = null;
         thumbnailFile.value = null;
@@ -130,7 +130,7 @@ const uploadFiles = async () => {
         }
     } catch (error) {
         console.error('Upload failed:', error);
-        alert('Upload failed. Please try again.');
+        showToast('Upload failed. Please try again.', 'error');
     } finally {
         isUploading.value = false;
     }

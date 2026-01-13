@@ -4,15 +4,12 @@ import axios from 'axios';
 import BaseLayout from "@/components/layout/BaseLayout.vue";
 import Loader from "@/components/layout/Loader.vue";
 import VideoCard from "@/components/video/VideoCard.vue";
+import { showToast } from "@/utils/toast";
 
 const isLoading = ref(true);
 const videos = ref([]);
 const error = ref(null);
 const currentUser = ref(null);
-const isEditing = ref(false);
-const editingVideo = ref(null);
-const thumbnailFile = ref(null);
-const editForm = ref({ title: '', description: '' });
 
 import { getAuthData } from "@/utils/cookie";
 
@@ -57,7 +54,6 @@ const fetchMyVideos = async () => {
             title: video.title,
             thumbnail: video.thumbnail,
             channel: video.owner?.username || currentUser.value.username,
-            // views removed
             time: new Date(video.createdAt).toLocaleDateString(),
             duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00",
             isPublished: video.isPublished
@@ -75,24 +71,6 @@ onMounted(() => {
     fetchMyVideos();
 });
 
-const startEdit = (video) => {
-    editingVideo.value = video;
-    editForm.value = {
-        title: video.title,
-        description: '' // Description isn't in the list view, might need to fetch it or just not show it initially. 
-        // Ideally we fetch details or pass it. For now, let's assume valid implementation requires re-fetch or props.
-        // I'll fetch details for editing or just let them edit title.
-        // Let's rely on basic title edit for card view, or fetch details.
-    };
-    isEditing.value = true;
-};
-
-// ... Wait, for full update I need description. 
-// I'll skip complex editing in the list view and just use the Watch page edit I built?
-// User said "add a section where user can see ... and delete or update"
-// It's probably better to redirect them to the Watch page for editing, OR implement simple delete here.
-// Let's implement Delete here and a "Manage" button that goes to Watch page.
-
 const deleteVideo = async (id) => {
     if (!confirm("Are you sure you want to delete this video?")) return;
     try {
@@ -103,7 +81,7 @@ const deleteVideo = async (id) => {
         // Remove from list
         videos.value = videos.value.filter(v => v.id !== id);
     } catch (e) {
-        alert('Failed to delete video');
+        showToast('Failed to delete video', 'error');
     }
 }
 
@@ -115,7 +93,7 @@ const togglePublish = async (video) => {
         });
         video.isPublished = !video.isPublished;
     } catch (e) {
-        alert('Failed to toggle privacy');
+        showToast('Failed to toggle privacy', 'error');
     }
 }
 </script>

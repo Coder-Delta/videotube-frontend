@@ -10,6 +10,7 @@ import {
 import { getAuthData } from "@/utils/cookie";
 import CommentBox from "@/components/comments/CommentBox.vue";
 import CommentItem from "@/components/comments/CommentItem.vue";
+import { showToast } from "@/utils/toast";
 
 const route = useRoute();
 const comments = ref([]);
@@ -78,7 +79,7 @@ const fetchComments = async () => {
 };
 
 const handleAddComment = async (content) => {
-    if (!currentUser.value) return alert("Please login to comment");
+    if (!currentUser.value) return showToast("Please login to comment", 'error');
     try {
         const res = await apiAddComment(content, videoId.value);
         const newComment = res.data || res;
@@ -93,19 +94,22 @@ const handleAddComment = async (content) => {
         }
         comments.value.unshift(newComment);
         totalComments.value++;
+        showToast("Comment added", 'success');
     } catch (e) {
         console.error("Add comment failed", e);
+        showToast("Failed to add comment", 'error');
     }
 };
 
 const handleDelete = async (commentId) => {
-    if (!confirm("Delete this comment?")) return;
     try {
         await apiDeleteComment(commentId);
         comments.value = comments.value.filter(c => c._id !== commentId);
         totalComments.value--;
+        showToast("Comment deleted", 'success');
     } catch (e) {
         console.error("Delete failed", e);
+        showToast("Failed to delete comment", 'error');
     }
 };
 
@@ -117,8 +121,10 @@ const handleUpdate = async (commentId, content) => {
         if (index !== -1) {
             comments.value[index].content = updated.content;
         }
+        showToast("Comment updated", 'success');
     } catch (e) {
         console.error("Update failed", e);
+        showToast("Failed to update comment", 'error');
     }
 };
 

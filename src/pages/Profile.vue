@@ -5,7 +5,8 @@ import BaseLayout from '@/components/layout/BaseLayout.vue';
 import { User, LogOut, Edit3, Save, Moon, Sun, Monitor, Camera, Image as ImageIcon } from 'lucide-vue-next';
 import authService from '@/services/auth.service';
 
-import { getAuthData, setAuthData, clearAuthData } from "@/utils/cookie";
+import { getAuthData, setAuthData, clearAuthData, setCookie, getCookie } from "@/utils/cookie";
+import { showToast } from "@/utils/toast";
 
 const router = useRouter();
 const currentUser = ref(null);
@@ -26,7 +27,7 @@ onMounted(() => {
     }
 
     // Load Theme
-    const savedTheme = localStorage.getItem('pico_theme') || 'auto';
+    const savedTheme = getCookie('pico_theme') || 'auto';
     setTheme(savedTheme);
 });
 
@@ -64,7 +65,7 @@ const formatDate = (dateString) => {
 
 const setTheme = (theme) => {
     currentTheme.value = theme;
-    localStorage.setItem('pico_theme', theme);
+    setCookie('pico_theme', theme, 365); // Persist for 1 year
     const html = document.querySelector('html');
 
     if (theme === 'auto') {
@@ -84,17 +85,15 @@ const toggleEdit = () => {
 
 const saveProfile = async () => {
     // ... (validation logic stays same) ...
-    console.group("🧩 saveProfile START");
 
     try {
         if (!currentUser?.value) {
-            console.error("❌ currentUser missing");
             return;
         }
 
         // 🔐 Required fields
         if (!editForm.name?.trim() || !editForm.email?.trim()) {
-            alert("Name and email are required");
+            showToast("Name and email are required", 'error');
             return;
         }
 
@@ -107,7 +106,6 @@ const saveProfile = async () => {
         const hasCover = !!selectedCoverFile?.value;
 
         if (!isTextChanged && !hasAvatar && !hasCover) {
-            console.log("⚠️ Nothing changed");
             return;
         }
 
@@ -149,8 +147,6 @@ const saveProfile = async () => {
             formData.append("coverImage", file);
         }
 
-        console.log("📡 Sending merged update request...");
-
         const response = await authService.updateUserProfile(formData);
 
         // ✅ Backend response shape
@@ -179,17 +175,10 @@ const saveProfile = async () => {
 
         window.dispatchEvent(new Event("storage"));
 
-        console.log("✅ Profile updated successfully");
+        window.dispatchEvent(new Event("storage"));
 
     } catch (error) {
-        console.group("🔥 saveProfile ERROR");
-        console.error(error);
-        console.groupEnd();
-
-        alert(error.message || "Profile update failed");
-    } finally {
-        console.groupEnd();
-        console.log("🏁 saveProfile END");
+        showToast(error.message || "Profile update failed", 'error');
     }
 };
 

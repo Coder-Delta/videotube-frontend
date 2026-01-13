@@ -12,6 +12,7 @@ import SuggestionCard from "@/components/video/SuggestionCard.vue";
 import subscriptionService from "@/services/subscription.service";
 import likeService from "@/services/like.service";
 import playlistService from "@/services/playlist.service";
+import { showToast } from "@/utils/toast";
 
 /* -------------------- state -------------------- */
 const route = useRoute();
@@ -67,14 +68,10 @@ const fetchVideoDetails = async (id) => {
     });
 
     const data = res.data?.data ?? res.data;
-    console.log("Video data received:", data); // Debug log
 
     // Extract owner information
     const ownerObj = typeof data.owner === "object" && data.owner !== null ? data.owner : null;
     const ownerId = ownerObj?._id || data.owner;
-
-    console.log("Owner object:", ownerObj); // Debug log
-    console.log("Owner ID:", ownerId); // Debug log
 
     video.value = {
       id: data._id,
@@ -96,8 +93,6 @@ const fetchVideoDetails = async (id) => {
       },
     };
 
-    console.log("Channel info set:", video.value.channel); // Debug log
-
     checkOwner();
 
     if (!isOwner.value && currentUser.value && ownerId) {
@@ -108,7 +103,6 @@ const fetchVideoDetails = async (id) => {
         isSubscribed.value = subs.some(
           s => (s.subscriber?._id || s.subscriber) === currentUser.value._id
         );
-        console.log("Subscription status:", isSubscribed.value, "Subscribers:", subs.length); // Debug log
       } catch (e) {
         logError("SUBSCRIPTION_CHECK", e);
       }
@@ -126,7 +120,6 @@ const fetchVideoDetails = async (id) => {
           return vidId === id;
         });
         video.value.isLiked = isLiked;
-        console.log("Current video like status fetched from backend:", isLiked);
       } catch (e) {
         logError("LIKE_STATUS_CHECK", e);
       }
@@ -167,12 +160,7 @@ const fetchVideoDetails = async (id) => {
         .slice(0, 10);
     } catch (e) {
       console.error("Failed to fetch suggestions:", e);
-      // Fallback suggestions
-      suggestions.value = [
-        { id: 'mock1', title: 'Top 10 Vue.js Tips', channel: 'VueMastery', time: '2 days ago', duration: '10:05', thumbnail: 'https://img.youtube.com/vi/qZXt1Aom3Cs/maxresdefault.jpg' },
-        { id: 'mock2', title: 'Why composition API?', channel: 'CodeWithMe', time: '1 week ago', duration: '08:30', thumbnail: 'https://img.youtube.com/vi/bziTPstK5Q0/maxresdefault.jpg' },
-        { id: 'mock3', title: 'Learn Pinia in 15 mins', channel: 'WebDevSimplified', time: '3 days ago', duration: '15:20', thumbnail: 'https://img.youtube.com/vi/u0ZcCf7f0Oc/maxresdefault.jpg' }
-      ];
+      suggestions.value = [];
     }
 
   } catch (e) {
@@ -185,7 +173,7 @@ const fetchVideoDetails = async (id) => {
 
 /* -------------------- interactions -------------------- */
 const handleLike = async () => {
-  if (!currentUser.value) return alert("Please log in");
+  if (!currentUser.value) return showToast("Please log in", 'error');
   try {
     await likeService.toggleVideoLike(video.value.id);
     video.value.isLiked = !video.value.isLiked;
@@ -196,9 +184,9 @@ const handleLike = async () => {
 };
 
 const handleSubscribe = async () => {
-  if (!currentUser.value) return alert("Please log in");
+  if (!currentUser.value) return showToast("Please log in", 'error');
   if (!video.value.channel?.id) {
-    alert("Channel information not available");
+    showToast("Channel information not available", 'error');
     return;
   }
 
@@ -211,10 +199,10 @@ const handleSubscribe = async () => {
     const newCount = isSubscribed.value ? currentCount + 1 : currentCount - 1;
     video.value.channel.subscribers = `${Math.max(0, newCount)} Subscribers`;
 
-    alert(isSubscribed.value ? "Subscribed successfully!" : "Unsubscribed successfully!");
+    showToast(isSubscribed.value ? "Subscribed successfully!" : "Unsubscribed successfully!", 'success');
   } catch (e) {
     logError("SUBSCRIBE", e);
-    alert("Failed to update subscription");
+    showToast("Failed to update subscription", 'error');
   }
 };
 
@@ -233,10 +221,10 @@ const addToPlaylist = async (playlistId) => {
   try {
     await playlistService.addVideoToPlaylist(playlistId, video.value.id);
     isPlaylistModalOpen.value = false;
-    alert("Added to playlist!");
+    showToast("Added to playlist!", 'success');
   } catch (e) {
     logError("ADD_TO_PLAYLIST", e);
-    alert("Failed to add to playlist");
+    showToast("Failed to add to playlist", 'error');
   }
 };
 
@@ -254,7 +242,7 @@ const createAndAddPlaylist = async () => {
     newPlaylistDescription.value = "";
   } catch (e) {
     logError("CREATE_PLAYLIST", e);
-    alert("Failed to create/add playlist");
+    showToast("Failed to create/add playlist", 'error');
   }
 };
 
@@ -314,7 +302,7 @@ const handleUpdate = async () => {
     isEditOpen.value = false;
   } catch (e) {
     logError("UPDATE_VIDEO", e);
-    alert("Failed to update video");
+    showToast("Failed to update video", 'error');
   }
 };
 
@@ -416,10 +404,6 @@ watch(() => route.params.id, id => {
       <div class="sidebar-suggestions">
         <header class="suggestions-header">
           <strong>Up Next</strong>
-          <label class="autoplay-toggle">
-            Autoplay
-            <input type="checkbox" role="switch" checked />
-          </label>
         </header>
 
         <div v-if="suggestions.length > 0" class="suggestions-list">
@@ -447,15 +431,7 @@ watch(() => route.params.id, id => {
   margin-bottom: 1rem;
 }
 
-.autoplay-toggle {
-  margin-bottom: 0;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--pico-muted-color);
-  font-weight: 600;
-}
+
 
 @media (max-width: 992px) {
   .grid {

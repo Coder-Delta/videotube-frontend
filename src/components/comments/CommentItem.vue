@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from "vue";
-import { ThumbsUp } from "lucide-vue-next";
 
 const props = defineProps({
     comment: { type: Object, required: true },
@@ -76,9 +75,6 @@ const timeAgo = (date) => {
             <p v-else>{{ comment.content }}</p>
 
             <div class="footer">
-                <button class="icon-btn">
-                    <ThumbsUp size="14" /> {{ comment.likesCount || 0 }}
-                </button>
                 <!-- Only show actions if owner -->
                 <template v-if="isOwner && !isEditing">
                     <button class="text-btn" @click="startEdit">Edit</button>

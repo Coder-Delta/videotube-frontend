@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
-import { ChevronDown, ChevronUp, Hash, Share2 } from "lucide-vue-next";
+import { ChevronDown, ChevronUp, Hash, Share2, ThumbsUp, ListPlus } from "lucide-vue-next";
+import { showToast } from "@/utils/toast";
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -27,7 +28,7 @@ const toggle = () => { expanded.value = !expanded.value; };
 const shareVideo = async () => {
   try {
     await navigator.clipboard.writeText(window.location.href);
-    alert("Link copied to clipboard!");
+    showToast("Link copied to clipboard!", 'success');
   } catch (err) {
     console.error("Failed to copy link", err);
   }
@@ -60,10 +61,11 @@ const shareVideo = async () => {
       <div class="channel-actions-right">
         <!-- Placeholder for Like, Share, etc. similar to YouTube -->
         <button class="action-btn-pill" :class="{ 'active-like': isLiked }" @click="$emit('like')">
-          <span class="icon-placeholder">👍</span> {{ isLiked ? 'Liked' : 'Like' }}
+          <ThumbsUp size="18" style="margin-right: 6px;" :fill="isLiked ? 'currentColor' : 'none'" /> {{ isLiked ?
+            'Liked' : 'Like' }}
         </button>
         <button class="action-btn-pill" @click="$emit('save-playlist')">
-          <span class="icon-placeholder">💾</span> Save
+          <ListPlus size="18" style="margin-right: 6px;" /> Save
         </button>
         <button class="action-btn-pill" @click="shareVideo">
           <Share2 size="18" style="margin-right: 6px;" /> Share
@@ -75,9 +77,6 @@ const shareVideo = async () => {
     <article class="description-box">
       <div class="desc-meta">
         <span>{{ date }}</span>
-        <div class="tags">
-          <span v-for="tag in tags" :key="tag"> {{ tag }}</span>
-        </div>
       </div>
 
       <div class="desc-content" :class="{ collapsed: !expanded }">

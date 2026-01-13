@@ -14,6 +14,7 @@ const isLoading = ref(true);
 const activeTab = ref("Videos");
 
 import subscriptionService from "@/services/subscription.service";
+import { showToast } from "@/utils/toast";
 
 const channel = ref({
   id: "",
@@ -111,7 +112,7 @@ const fetchData = async () => {
 
 const handleSubscribe = async () => {
   if (!currentUser.value) {
-    alert("Please log in to subscribe.");
+    showToast("Please log in to subscribe.", 'error');
     return;
   }
   try {
@@ -127,7 +128,7 @@ const handleSubscribe = async () => {
     channel.value.subscribers = `${channel.value.subscribersCount} subscribers`;
 
   } catch (e) {
-    alert("Failed to update subscription");
+    showToast("Failed to update subscription", 'error');
   }
 };
 
@@ -160,7 +161,6 @@ const fetchVideos = async (userId) => {
       id: v._id,
       title: v.title,
       thumbnail: v.thumbnail,
-      // views removed
       time: new Date(v.createdAt).toLocaleDateString(),
       duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
       isPublished: v.isPublished
@@ -195,10 +195,9 @@ const createTweet = async () => {
     await axios.post('/api/v1/tweets', { content: tweetContent.value }, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    tweetContent.value = "";
     isTweetModalOpen.value = false;
     fetchTweets(channel.value.id); // refresh
-  } catch (e) { alert('Failed to post tweet'); }
+  } catch (e) { showToast('Failed to post tweet', 'error'); }
 };
 
 const deleteTweet = async (id) => {
@@ -209,7 +208,7 @@ const deleteTweet = async (id) => {
       headers: { Authorization: `Bearer ${token}` }
     });
     tweets.value = tweets.value.filter(t => t._id !== id);
-  } catch (e) { alert('Failed'); }
+  } catch (e) { showToast('Failed', 'error'); }
 };
 
 const createPlaylist = async () => {
@@ -218,10 +217,9 @@ const createPlaylist = async () => {
     await axios.post('/api/v1/playlist', playlistForm.value, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    playlistForm.value = { name: "", description: "" };
     isPlaylistModalOpen.value = false;
     fetchPlaylists(channel.value.id);
-  } catch (e) { alert('Failed to create playlist'); }
+  } catch (e) { showToast('Failed to create playlist', 'error'); }
 };
 
 const deletePlaylist = async (id) => {
@@ -232,7 +230,7 @@ const deletePlaylist = async (id) => {
       headers: { Authorization: `Bearer ${token}` }
     });
     playlists.value = playlists.value.filter(p => p._id !== id);
-  } catch (e) { alert('Failed'); }
+  } catch (e) { showToast('Failed', 'error'); }
 };
 
 // Video actions (Owner Only)
@@ -244,7 +242,7 @@ const deleteVideo = async (id) => {
       headers: { Authorization: `Bearer ${token}` }
     });
     videos.value = videos.value.filter(v => v.id !== id);
-  } catch (e) { alert("Failed to delete"); }
+  } catch (e) { showToast("Failed to delete", 'error'); }
 };
 
 // Watchers

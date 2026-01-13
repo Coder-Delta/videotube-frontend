@@ -18,7 +18,6 @@ onMounted(async () => {
             id: i + 300,
             title: `Subscription Update #${i + 1}`,
             channel: 'My Fav Channel',
-            // views removed
             time: '1 hour ago',
             duration: '10:00'
         }));
