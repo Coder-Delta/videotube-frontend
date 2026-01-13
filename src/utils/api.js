@@ -1,10 +1,10 @@
 import axios from "axios";
 import { getCookie } from "./cookie";
 
-// axios instance
+// axios instance (PRODUCTION SAFE)
 const api = axios.create({
-    baseURL: "/api/v1",        // all requests start with /api/v1
-    withCredentials: true,     // allow cookies if backend uses them
+    baseURL: import.meta.env.VITE_API_BASE + "/api/v1",
+    withCredentials: true,
 });
 
 // add token before every request

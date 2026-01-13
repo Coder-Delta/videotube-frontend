@@ -9,11 +9,10 @@ export default defineConfig({
     proxy: {
       "/api/v1": {
         target: "https://chai-aur-backend-tib4.onrender.com",
-        changeOrigin: true,
-        secure: false,
       },
     },
   },
+
   plugins: [
     vue(),
   ],
