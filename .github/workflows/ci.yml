@@ -1,8 +1,10 @@
-name: Docker CI
+name: Docker CI + Deploy
 
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - "v*.*.*"
 
 jobs:
   docker:
@@ -10,6 +12,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: vars
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+            echo "TAG=latest" >> $GITHUB_ENV
+          fi
 
       - name: Docker login
         uses: docker/login-action@v3
@@ -21,4 +32,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: coderdelta/cholochitro:latest
+          tags: |
+            coderdelta/cholochitro:${{ env.TAG }}
+            coderdelta/cholochitro:latest
