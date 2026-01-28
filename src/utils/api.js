@@ -1,39 +1,23 @@
 import axios from "axios";
-import { getCookie } from "./cookie";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL + "/api/v1",
-  withCredentials: true, // ✅ REQUIRED FOR PROD
+  withCredentials: true, // 🔥 REQUIRED
   timeout: 20000,
 });
 
-// 🔐 Attach token automatically (SAFE)
-api.interceptors.request.use(
-  (config) => {
-    const token = getCookie("accessToken");
-
-    // ✅ only attach header if token is readable
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// 🌐 Global error handling (UNCHANGED)
+// 🌐 Global response handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
 
     if (status === 401) {
-      console.warn("Unauthorized – token expired or missing");
+      console.warn("Unauthorized – login required or token expired");
     }
 
     if (status === 403) {
-      console.warn("Forbidden – insufficient permissions");
+      console.warn("Forbidden – permission denied");
     }
 
     return Promise.reject(error);
