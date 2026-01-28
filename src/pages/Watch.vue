@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
-import axios from 'axios';
+import api from "@/utils/api"; // ✅ FIX
 import { getAuthData } from "@/utils/cookie";
 import BaseLayout from "@/components/layout/BaseLayout.vue";
 import Loader from "@/components/layout/Loader.vue";
@@ -63,14 +63,13 @@ const fetchVideoDetails = async (id) => {
   error.value = null;
 
   try {
-    const res = await axios.get(`/api/v1/videos/${id}`, {
+    // ✅ FIXED: api instance
+    const res = await api.get(`/videos/${id}`, {
       headers: getAuthHeaders(),
     });
 
     const data = res.data?.data ?? res.data;
-
-    // Extract owner information
-    const ownerObj = typeof data.owner === "object" && data.owner !== null ? data.owner : null;
+    const ownerObj = typeof data.owner === "object" ? data.owner : null;
     const ownerId = ownerObj?._id || data.owner;
 
     video.value = {
@@ -78,7 +77,6 @@ const fetchVideoDetails = async (id) => {
       src: data.videoFile,
       poster: data.thumbnail,
       title: data.title,
-      // views removed
       date: new Date(data.createdAt).toLocaleDateString(),
       description: data.description,
       isPublished: data.isPublished,
@@ -95,7 +93,8 @@ const fetchVideoDetails = async (id) => {
 
     checkOwner();
 
-    if (!isOwner.value && currentUser.value && ownerId) {
+    /* ---------- subscription ---------- */
+    if (!isOwner.value && ownerId && currentUser.value) {
       try {
         const subRes = await subscriptionService.getUserChannelSubscribers(ownerId);
         const subs = subRes.data?.data || [];
@@ -108,43 +107,30 @@ const fetchVideoDetails = async (id) => {
       }
     }
 
-    // Check Like Status
+    /* ---------- like status ---------- */
     if (currentUser.value) {
       try {
         const likedRes = await likeService.getLikedVideos();
-        const likedVideos = likedRes.data?.data || likedRes.data || [];
-        // Checks if current video ID exists in liked videos list
-        const isLiked = likedVideos.some(item => {
-          // Robust checking for both { video: { _id: ... } } and directly { _id: ... }
-          const vidId = item.video?._id || item._id || (typeof item === 'string' ? item : null);
-          return vidId === id;
-        });
-        video.value.isLiked = isLiked;
+        const likedVideos = likedRes.data?.data || [];
+        video.value.isLiked = likedVideos.some(
+          v => (v.video?._id || v._id) === id
+        );
       } catch (e) {
-        logError("LIKE_STATUS_CHECK", e);
+        logError("LIKE_STATUS", e);
       }
     }
 
-    // Fetch Suggestions
+    /* ---------- suggestions ---------- */
     try {
-      const sRes = await axios.get("/api/v1/videos", {
+      const sRes = await api.get("/videos", {
         headers: getAuthHeaders(),
       });
-      const sData = sRes.data;
-      let raw = [];
 
-      // Robust data extraction
-      if (Array.isArray(sData)) {
-        raw = sData;
-      } else if (sData && Array.isArray(sData.data)) {
-        raw = sData.data;
-      } else if (sData?.data?.videos && Array.isArray(sData.data.videos)) {
-        raw = sData.data.videos;
-      } else if (sData?.data?.docs && Array.isArray(sData.data.docs)) {
-        raw = sData.data.docs;
-      } else if (sData?.docs && Array.isArray(sData.docs)) {
-        raw = sData.docs;
-      }
+      const raw =
+        sRes.data?.data?.videos ||
+        sRes.data?.data?.docs ||
+        sRes.data?.data ||
+        [];
 
       suggestions.value = raw
         .filter(v => v && v._id !== id)
@@ -152,14 +138,11 @@ const fetchVideoDetails = async (id) => {
           id: v._id,
           title: v.title,
           channel: v.owner?.username || "Cholochitro User",
-          // views removed
-          time: new Date(v.createdAt).toLocaleDateString(),
           thumbnail: v.thumbnail,
-          duration: v.duration ? (v.duration / 60).toFixed(2) : "00:00",
         }))
         .slice(0, 10);
     } catch (e) {
-      console.error("Failed to fetch suggestions:", e);
+      logError("SUGGESTIONS", e);
       suggestions.value = [];
     }
 
@@ -173,7 +156,7 @@ const fetchVideoDetails = async (id) => {
 
 /* -------------------- interactions -------------------- */
 const handleLike = async () => {
-  if (!currentUser.value) return showToast("Please log in", 'error');
+  if (!currentUser.value) return showToast("Please log in", "error");
   try {
     await likeService.toggleVideoLike(video.value.id);
     video.value.isLiked = !video.value.isLiked;
@@ -184,25 +167,18 @@ const handleLike = async () => {
 };
 
 const handleSubscribe = async () => {
-  if (!currentUser.value) return showToast("Please log in", 'error');
-  if (!video.value.channel?.id) {
-    showToast("Channel information not available", 'error');
-    return;
-  }
-
+  if (!currentUser.value) return showToast("Please log in", "error");
   try {
     await subscriptionService.toggleSubscription(video.value.channel.id);
     isSubscribed.value = !isSubscribed.value;
 
-    // Optimistically update subscriber count
-    const currentCount = parseInt(video.value.channel.subscribers) || 0;
-    const newCount = isSubscribed.value ? currentCount + 1 : currentCount - 1;
-    video.value.channel.subscribers = `${Math.max(0, newCount)} Subscribers`;
-
-    showToast(isSubscribed.value ? "Subscribed successfully!" : "Unsubscribed successfully!", 'success');
+    const current = parseInt(video.value.channel.subscribers) || 0;
+    video.value.channel.subscribers = `${Math.max(
+      0,
+      isSubscribed.value ? current + 1 : current - 1
+    )} Subscribers`;
   } catch (e) {
     logError("SUBSCRIBE", e);
-    showToast("Failed to update subscription", 'error');
   }
 };
 
@@ -211,7 +187,7 @@ const openPlaylistModal = async () => {
   isPlaylistModalOpen.value = true;
   try {
     const res = await playlistService.getMyPlaylists();
-    userPlaylists.value = res.data?.data || res.data || [];
+    userPlaylists.value = res.data?.data || [];
   } catch (e) {
     logError("FETCH_PLAYLISTS", e);
   }
@@ -221,55 +197,41 @@ const addToPlaylist = async (playlistId) => {
   try {
     await playlistService.addVideoToPlaylist(playlistId, video.value.id);
     isPlaylistModalOpen.value = false;
-    showToast("Added to playlist!", 'success');
+    showToast("Added to playlist!", "success");
   } catch (e) {
     logError("ADD_TO_PLAYLIST", e);
-    showToast("Failed to add to playlist", 'error');
   }
 };
 
 const createAndAddPlaylist = async () => {
-  const name = newPlaylistName.value.trim();
-  const description = newPlaylistDescription.value.trim();
-  if (!name) return;
-
+  if (!newPlaylistName.value.trim()) return;
   try {
-    const res = await playlistService.createPlaylist({ name, description });
-    const id = res.data?._id || res?._id;
-    if (!id) throw new Error("Playlist id missing");
-    await addToPlaylist(id);
+    const res = await playlistService.createPlaylist({
+      name: newPlaylistName.value,
+      description: newPlaylistDescription.value,
+    });
+    await addToPlaylist(res.data._id);
     newPlaylistName.value = "";
     newPlaylistDescription.value = "";
   } catch (e) {
     logError("CREATE_PLAYLIST", e);
-    showToast("Failed to create/add playlist", 'error');
   }
 };
 
 /* -------------------- owner actions -------------------- */
 const handleTogglePublish = async () => {
-  try {
-    await axios.patch(
-      `/api/v1/videos/toggle/publish/${video.value.id}`,
-      {},
-      { headers: getAuthHeaders() }
-    );
-    video.value.isPublished = !video.value.isPublished;
-  } catch (e) {
-    logError("TOGGLE_PUBLISH", e);
-  }
+  await api.patch(`/videos/toggle/publish/${video.value.id}`, {}, {
+    headers: getAuthHeaders(),
+  });
+  video.value.isPublished = !video.value.isPublished;
 };
 
 const handleDelete = async () => {
   if (!confirm("Delete this video?")) return;
-  try {
-    await axios.delete(`/api/v1/videos/${video.value.id}`, {
-      headers: getAuthHeaders(),
-    });
-    window.location.href = "/";
-  } catch (e) {
-    logError("DELETE_VIDEO", e);
-  }
+  await api.delete(`/videos/${video.value.id}`, {
+    headers: getAuthHeaders(),
+  });
+  window.location.href = "/";
 };
 
 const openEdit = () => {
@@ -281,29 +243,16 @@ const openEdit = () => {
 };
 
 const handleUpdate = async () => {
-  try {
-    const formData = new FormData();
-    formData.append("title", editForm.value.title);
-    formData.append("description", editForm.value.description);
-    if (thumbnailFile.value) {
-      formData.append("thumbnail", thumbnailFile.value);
-    }
+  const formData = new FormData();
+  formData.append("title", editForm.value.title);
+  formData.append("description", editForm.value.description);
+  if (thumbnailFile.value) formData.append("thumbnail", thumbnailFile.value);
 
-    const res = await axios.patch(
-      `/api/v1/videos/${video.value.id}`,
-      formData,
-      { headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" } }
-    );
+  await api.patch(`/videos/${video.value.id}`, formData, {
+    headers: { ...getAuthHeaders(), "Content-Type": "multipart/form-data" },
+  });
 
-    const updated = res.data?.data;
-    video.value.title = updated.title;
-    video.value.description = updated.description;
-    if (updated.thumbnail) video.value.poster = updated.thumbnail;
-    isEditOpen.value = false;
-  } catch (e) {
-    logError("UPDATE_VIDEO", e);
-    showToast("Failed to update video", 'error');
-  }
+  isEditOpen.value = false;
 };
 
 /* -------------------- lifecycle -------------------- */
@@ -315,7 +264,6 @@ watch(() => route.params.id, id => {
   if (id) fetchVideoDetails(id);
 });
 </script>
-
 
 <template>
   <Loader v-if="isLoading" />
