@@ -1,19 +1,35 @@
 <script setup>
 import { useRouter } from "vue-router";
-import { Play, MoreVertical, CheckCircle2 } from "lucide-vue-next";
+import { CheckCircle2 } from "lucide-vue-next";
+import { computed } from "vue";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
   title: { type: String, required: true },
   thumbnail: { type: String, default: "" },
   channel: { type: String, required: true },
-  // views removed
   time: { type: String, default: "Just now" },
-  duration: { type: [String, Number], default: "00:00" }
+  duration: { type: [String, Number], default: 0 }
 });
 
 const router = useRouter();
 const goToWatch = () => router.push(`/watch/${props.id}`);
+
+// Perfect duration formatter
+const formattedDuration = computed(() => {
+  const total = Math.floor(Number(props.duration));
+  if (!total || total <= 0) return "00:00";
+
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+
+  const pad = (n) => String(n).padStart(2, "0");
+
+  return h > 0
+    ? `${h}:${pad(m)}:${pad(s)}`
+    : `${pad(m)}:${pad(s)}`;
+});
 </script>
 
 <template>
