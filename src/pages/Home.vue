@@ -33,9 +33,8 @@ const fetchVideos = async () => {
         time: video.createdAt
           ? new Date(video.createdAt).toLocaleDateString()
           : "",
-        duration: video.duration
-          ? `${Math.floor(video.duration / 60)}:${String(video.duration % 60).padStart(2, "0")}`
-          : "00:00"
+        // ✅ FIX 2: PASS RAW SECONDS (NO STRING FORMATTING HERE)
+        duration: Number(video.duration) || 0
       }))
       : [];
   } catch (err) {
@@ -54,6 +53,7 @@ onMounted(fetchVideos);
 
 <template>
   <Loader v-if="isLoading" />
+
   <BaseLayout v-else>
     <hgroup>
       <h3>Recommended for You</h3>
