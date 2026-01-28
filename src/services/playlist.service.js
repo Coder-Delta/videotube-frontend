@@ -1,69 +1,76 @@
 import api from "@/utils/api";
 import { getAuthData } from "@/utils/cookie";
 
-/* -------------------- helpers -------------------- */
+/* ---------------- helpers ---------------- */
 const getAuthHeaders = () => {
     const { token } = getAuthData();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (!token) throw new Error("Not authenticated");
+    return { Authorization: `Bearer ${token}` };
 };
 
-/* -------------------- playlist CRUD -------------------- */
+/* ---------------- playlist CRUD ---------------- */
 const createPlaylist = async (data) => {
-    try {
-        const response = await api.post("/playlist", data, {
-            headers: getAuthHeaders(),
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Create playlist failed:", error);
-        throw error;
-    }
-};
-
-const updatePlaylist = (playlistId, data) => {
-    return api.patch(`/playlist/${playlistId}`, data, {
+    const response = await api.post("/playlist", data, {
         headers: getAuthHeaders(),
     });
+    return response.data;
 };
 
-const deletePlaylist = (playlistId) => {
-    return api.delete(`/playlist/${playlistId}`, {
+const updatePlaylist = async (playlistId, data) => {
+    const response = await api.patch(`/playlist/${playlistId}`, data, {
         headers: getAuthHeaders(),
     });
+    return response.data;
 };
 
-const getPlaylistById = (playlistId) => {
-    return api.get(`/playlist/${playlistId}`, {
+const deletePlaylist = async (playlistId) => {
+    const response = await api.delete(`/playlist/${playlistId}`, {
         headers: getAuthHeaders(),
     });
+    return response.data;
 };
 
-const getUserPlaylists = (userId) => {
-    return api.get(`/playlist/user/${userId}`, {
+const getPlaylistById = async (playlistId) => {
+    const response = await api.get(`/playlist/${playlistId}`, {
         headers: getAuthHeaders(),
     });
+    return response.data;
 };
 
-/* -------------------- my playlists -------------------- */
-const getMyPlaylists = () => {
+const getUserPlaylists = async (userId) => {
+    const response = await api.get(`/playlist/user/${userId}`, {
+        headers: getAuthHeaders(),
+    });
+    return response.data;
+};
+
+/* ---------------- my playlists ---------------- */
+const getMyPlaylists = async () => {
     const { user } = getAuthData();
-    if (!user) return Promise.reject("User not logged in");
+    if (!user) throw new Error("User not logged in");
     return getUserPlaylists(user._id);
 };
 
-/* -------------------- playlist videos -------------------- */
-const addVideoToPlaylist = (playlistId, videoId) => {
-    return api.patch(`/playlist/add/${videoId}/${playlistId}`, {}, {
-        headers: getAuthHeaders(),
-    });
+/* ---------------- playlist videos ---------------- */
+const addVideoToPlaylist = async (playlistId, videoId) => {
+    const response = await api.patch(
+        `/playlist/add/${videoId}/${playlistId}`,
+        {},
+        { headers: getAuthHeaders() }
+    );
+    return response.data;
 };
 
-const removeVideoFromPlaylist = (playlistId, videoId) => {
-    return api.patch(`/playlist/remove/${videoId}/${playlistId}`, {}, {
-        headers: getAuthHeaders(),
-    });
+const removeVideoFromPlaylist = async (playlistId, videoId) => {
+    const response = await api.patch(
+        `/playlist/remove/${videoId}/${playlistId}`,
+        {},
+        { headers: getAuthHeaders() }
+    );
+    return response.data;
 };
 
+/* ---------------- exports ---------------- */
 export {
     createPlaylist,
     updatePlaylist,
