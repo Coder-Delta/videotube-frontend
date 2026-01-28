@@ -1,37 +1,41 @@
-import axios from 'axios';
+import api from "@/utils/api";
 import { getAuthData } from "@/utils/cookie";
 
-const API_URL = '/api/v1/subscriptions';
-
+/* -------------------- helpers -------------------- */
 const getAuthHeaders = () => {
     const { token } = getAuthData();
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+/* -------------------- subscriptions -------------------- */
+
 // Toggle subscription for a channel
 const toggleSubscription = (channelId) => {
-    return axios.post(`${API_URL}/c/${channelId}`, {}, {
-        headers: getAuthHeaders()
-    });
+    return api.post(
+        `/subscriptions/c/${channelId}`,
+        {},
+        {
+            headers: getAuthHeaders(),
+        }
+    );
 };
 
 // Get list of subscribed channels for a user (subscriberId)
 const getSubscribedChannels = (subscriberId) => {
-    return axios.get(`${API_URL}/u/${subscriberId}`, {
-        headers: getAuthHeaders()
+    return api.get(`/subscriptions/u/${subscriberId}`, {
+        headers: getAuthHeaders(),
     });
 };
 
 // Get list of subscribers for a channel (channelId)
 const getUserChannelSubscribers = (channelId) => {
-    return axios.get(`${API_URL}/c/${channelId}`, {
-        headers: getAuthHeaders()
+    return api.get(`/subscriptions/c/${channelId}`, {
+        headers: getAuthHeaders(),
     });
 };
-
 
 export default {
     toggleSubscription,
     getSubscribedChannels,
-    getUserChannelSubscribers
+    getUserChannelSubscribers,
 };

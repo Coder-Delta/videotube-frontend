@@ -1,16 +1,16 @@
-import axios from 'axios';
+import api from "@/utils/api";
 import { getAuthData } from "@/utils/cookie";
 
-const API_URL = '/api/v1/playlist';
-
+/* -------------------- helpers -------------------- */
 const getAuthHeaders = () => {
     const { token } = getAuthData();
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+/* -------------------- playlist CRUD -------------------- */
 const createPlaylist = async (data) => {
     try {
-        const response = await axios.post(API_URL, data, {
+        const response = await api.post("/playlist", data, {
             headers: getAuthHeaders(),
         });
         return response.data;
@@ -20,48 +20,47 @@ const createPlaylist = async (data) => {
     }
 };
 
-
 const updatePlaylist = (playlistId, data) => {
-    return axios.patch(`${API_URL}/${playlistId}`, data, {
-        headers: getAuthHeaders()
+    return api.patch(`/playlist/${playlistId}`, data, {
+        headers: getAuthHeaders(),
     });
 };
 
 const deletePlaylist = (playlistId) => {
-    return axios.delete(`${API_URL}/${playlistId}`, {
-        headers: getAuthHeaders()
+    return api.delete(`/playlist/${playlistId}`, {
+        headers: getAuthHeaders(),
     });
 };
 
 const getPlaylistById = (playlistId) => {
-    return axios.get(`${API_URL}/${playlistId}`, {
-        headers: getAuthHeaders()
+    return api.get(`/playlist/${playlistId}`, {
+        headers: getAuthHeaders(),
     });
 };
 
 const getUserPlaylists = (userId) => {
-    return axios.get(`${API_URL}/user/${userId}`, {
-        headers: getAuthHeaders()
+    return api.get(`/playlist/user/${userId}`, {
+        headers: getAuthHeaders(),
     });
 };
 
-// Helper for "My Playlists" - fetches for currently logged in user
+/* -------------------- my playlists -------------------- */
 const getMyPlaylists = () => {
     const { user } = getAuthData();
     if (!user) return Promise.reject("User not logged in");
     return getUserPlaylists(user._id);
 };
 
-
+/* -------------------- playlist videos -------------------- */
 const addVideoToPlaylist = (playlistId, videoId) => {
-    return axios.patch(`${API_URL}/add/${videoId}/${playlistId}`, {}, {
-        headers: getAuthHeaders()
+    return api.patch(`/playlist/add/${videoId}/${playlistId}`, {}, {
+        headers: getAuthHeaders(),
     });
 };
 
 const removeVideoFromPlaylist = (playlistId, videoId) => {
-    return axios.patch(`${API_URL}/remove/${videoId}/${playlistId}`, {}, {
-        headers: getAuthHeaders()
+    return api.patch(`/playlist/remove/${videoId}/${playlistId}`, {}, {
+        headers: getAuthHeaders(),
     });
 };
 
@@ -73,7 +72,7 @@ export {
     getUserPlaylists,
     getMyPlaylists,
     addVideoToPlaylist,
-    removeVideoFromPlaylist
+    removeVideoFromPlaylist,
 };
 
 export default {
@@ -84,5 +83,5 @@ export default {
     getUserPlaylists,
     getMyPlaylists,
     addVideoToPlaylist,
-    removeVideoFromPlaylist
+    removeVideoFromPlaylist,
 };

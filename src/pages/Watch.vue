@@ -167,9 +167,19 @@ const handleLike = async () => {
 };
 
 const handleSubscribe = async () => {
-  if (!currentUser.value) return showToast("Please log in", "error");
+  if (!currentUser.value) {
+    return showToast("Please log in", "error");
+  }
+
+  const channelId = video.value?.channel?.id;
+
+  if (!channelId) {
+    console.error("Channel ID missing:", video.value);
+    return showToast("Channel not found", "error");
+  }
+
   try {
-    await subscriptionService.toggleSubscription(video.value.channel.id);
+    await subscriptionService.toggleSubscription(channelId);
     isSubscribed.value = !isSubscribed.value;
 
     const current = parseInt(video.value.channel.subscribers) || 0;
@@ -179,6 +189,7 @@ const handleSubscribe = async () => {
     )} Subscribers`;
   } catch (e) {
     logError("SUBSCRIBE", e);
+    showToast("Failed to update subscription", "error");
   }
 };
 

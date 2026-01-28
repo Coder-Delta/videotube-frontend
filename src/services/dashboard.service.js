@@ -1,8 +1,10 @@
-import api from "@/utils/api.js";
+import api from "@/utils/api";
+
+/* -------------------- dashboard -------------------- */
 
 const getChannelStats = async () => {
     try {
-        const response = await api.get('/dashboard/stats');
+        const response = await api.get("/dashboard/stats");
         return response.data;
     } catch (error) {
         throw error;
@@ -11,7 +13,7 @@ const getChannelStats = async () => {
 
 const getChannelVideos = async () => {
     try {
-        const response = await api.get('/dashboard/videos');
+        const response = await api.get("/dashboard/videos");
         return response.data;
     } catch (error) {
         throw error;
@@ -20,5 +22,10 @@ const getChannelVideos = async () => {
 
 export {
     getChannelStats,
-    getChannelVideos
+    getChannelVideos,
+};
+
+export default {
+    getChannelStats,
+    getChannelVideos,
 };

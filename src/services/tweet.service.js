@@ -1,8 +1,10 @@
-import api from "@/utils/api.js";
+import api from "@/utils/api";
+
+/* -------------------- tweets -------------------- */
 
 const createTweet = async (content) => {
     try {
-        const response = await api.post('/tweets', { content });
+        const response = await api.post("/tweets", { content });
         return response.data;
     } catch (error) {
         throw error;
@@ -40,5 +42,12 @@ export {
     createTweet,
     getUserTweets,
     updateTweet,
-    deleteTweet
+    deleteTweet,
+};
+
+export default {
+    createTweet,
+    getUserTweets,
+    updateTweet,
+    deleteTweet,
 };

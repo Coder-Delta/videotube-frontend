@@ -1,12 +1,19 @@
-import api from "@/utils/api.js";
+import api from "@/utils/api";
 
-export const checkHealth = async () => {
-    try {
-        const response = await api.get("/healthcheck");
-        console.log("Health check response:", response.data);
-        return response.data;
-    } catch (error) {
-        console.error("Health check failed:", error);
-        throw error;
-    }
+/* -------------------- health check -------------------- */
+const checkHealth = async () => {
+  try {
+    const response = await api.get("/healthcheck");
+    console.log("Health check response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Health check failed:", error);
+    throw error;
+  }
+};
+
+export { checkHealth };
+
+export default {
+  checkHealth,
 };
