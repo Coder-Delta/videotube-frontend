@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from 'axios';
+import api from "@/utils/api";
 import BaseLayout from "@/components/layout/BaseLayout.vue";
 import Loader from "@/components/layout/Loader.vue";
 import VideoCard from "@/components/video/VideoCard.vue";
@@ -9,51 +9,47 @@ const isLoading = ref(true);
 const videos = ref([]);
 const error = ref(null);
 
-import { getAuthData } from "@/utils/cookie";
-
 const fetchVideos = async () => {
+  isLoading.value = true;
   error.value = null;
+
   try {
-    const { token } = getAuthData();
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await api.get("/videos");
 
-    const response = await axios.get('/api/v1/videos', { headers });
+    const payload = response?.data?.data;
 
-    let videoList = [];
-    const data = response.data;
+    const videoList =
+      payload?.videos ||
+      payload?.docs ||
+      payload ||
+      [];
 
-    if (Array.isArray(data)) {
-      videoList = data;
-    } else if (data && Array.isArray(data.data)) {
-      videoList = data.data;
-    } else if (data && data.data && Array.isArray(data.data.videos)) {
-      // Specific handling for current API structure
-      videoList = data.data.videos;
-    } else if (data && data.data && Array.isArray(data.data.docs)) {
-      videoList = data.data.docs;
-    } else if (data && Array.isArray(data.docs)) {
-      videoList = data.docs;
-    }
-
-    videos.value = videoList.map(video => ({
-      id: video._id,
-      title: video.title,
-      thumbnail: video.thumbnail,
-      channel: video.owner?.username || "Cholochitro User",
-      time: new Date(video.createdAt).toLocaleDateString(),
-      duration: video.duration ? (video.duration / 60).toFixed(2) : "00:00"
-    }));
+    videos.value = Array.isArray(videoList)
+      ? videoList.map(video => ({
+        id: video._id,
+        title: video.title,
+        thumbnail: video.thumbnail,
+        channel: video.owner?.username || "Cholochitro User",
+        time: video.createdAt
+          ? new Date(video.createdAt).toLocaleDateString()
+          : "",
+        duration: video.duration
+          ? `${Math.floor(video.duration / 60)}:${String(video.duration % 60).padStart(2, "0")}`
+          : "00:00"
+      }))
+      : [];
   } catch (err) {
-    console.error("Failed to fetch videos:", err);
-    error.value = "Failed to load videos. Please try again later.";
+    console.error("Video API Error:", err);
+    error.value =
+      err.response?.data?.message ||
+      err.message ||
+      "Failed to load videos";
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(() => {
-  fetchVideos();
-});
+onMounted(fetchVideos);
 </script>
 
 <template>

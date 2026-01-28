@@ -1,6 +1,6 @@
-# .
+# VideoTube Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+A modern Vue 3 video sharing platform built with Vite.
 
 ## Recommended IDE Setup
 
@@ -21,9 +21,28 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ## Project Setup
 
+### 1. Install Dependencies
+
 ```sh
 npm install
 ```
+
+### 2. Configure Environment Variables
+
+Copy the example environment file and configure your backend URL:
+
+```sh
+cp .env.example .env
+```
+
+Edit `.env` and set your backend URL:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+📖 **For detailed environment configuration, see [ENV_CONFIG.md](./ENV_CONFIG.md)**
+
 
 ### Compile and Hot-Reload for Development
 
